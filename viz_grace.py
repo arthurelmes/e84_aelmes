@@ -37,25 +37,33 @@ def do_plot(img, img_name, out_dir, contrast_stretch, low, high, ul_coord, lr_co
     xres = geotransform[1]
     yres = geotransform[5]
 
-    # xmin = geotransform[0] - xres + 1
-    # # temporarily hard coded ds.RasterXSize and ds.RasterYSize that multiply by xres, yres
-    # xmax = geotransform[0] + (xres * 360)# - xres * 0.5
-    # ymin = geotransform[3] + (yres * 180)# + yres * 0.5
-    # ymax = geotransform[3] - yres - 1 #* 0.5
+    # WORKING LIMITS get the edge coordinates and add half the resolution
+    # to go to center coordinates
+    # xmin = gt[0] + xres * 0.5
+    # xmax = gt[0] + (xres * 360) - xres * 0.5
+    # ymin = gt[3] + (yres * 180) + yres * 0.5
+    # ymax = gt[3] - yres * 0.5
 
     # get the edge coordinates and add half the resolution
     # to go to center coordinates
-    # xmin = gt[0] + xres * 0.5 - 0.5
-    # xmax = gt[0] + (xres * 360) - xres * 0.5 + 0.5
-    # ymin = gt[3] + (yres * 180) + yres * 0.5 + 0.5
-    # ymax = gt[3] - yres * 0.5 - 0.5
+    xmin = geotransform[0]# + xres * 0.5
+    xmax = geotransform[0]# + (xres * 360) - xres * 0.5
+    ymin = geotransform[3]# + (yres * 180) + yres * 0.5
+    ymax = geotransform[3]# - yres * 0.5
 
-    # get the edge coordinates and add half the resolution
-    # to go to center coordinates
-    xmin = gt[0] + xres * 0.5
-    xmax = gt[0] + (xres * 360) - xres * 0.5
-    ymin = gt[3] + (yres * 180) + yres * 0.5
-    ymax = gt[3] - yres * 0.5
+
+    #
+    # ymax = ul_coord[0] - yres * 0.5
+    # ymin = lr_coord[0] + yres * 0.5
+    #
+    # xmax = lr_coord[1]  - xres * 0.5
+    # xmin = ul_coord[1] + xres * 0.5
+
+    print(f'upper right corner lat: {ymax}')
+    print(f'lower left corner lat: {ymin}')
+    print(f'upper right corner lon: {xmax}')
+    print(f'lower left corner lon: {xmin}')
+
 
     # TODO probably just cut this, and also the parameter for it
     # Perform contrast stretch on RGB range
@@ -73,24 +81,27 @@ def do_plot(img, img_name, out_dir, contrast_stretch, low, high, ul_coord, lr_co
     fp = FontProperties(family='DejaVu Sans', size=16, weight='bold')
     fig.suptitle(os.path.basename(img_name), fontproperties=fp, color='black')
 
-    print(f'lower left corner lat: {ymin}')
-    print(f'upper right corner lat: {ymax}')
-    print(f'lower left corner lon: {xmin}')
-    print(f'upper right corner lon: {xmax}')
-    print(f'central long is: {xmax + xmin}')
-
-    m = Basemap(projection='robin',
+    m = Basemap(projection='merc',
                 #lon_0=0,
-                llcrnrlat=ymin+0.5,
-                urcrnrlat=ymax-0.5,
-                llcrnrlon=xmin-0.5,
-                urcrnrlon=xmax+0.5,
-                lon_0=0,
+                llcrnrlat=ymin,
+                urcrnrlat=ymax,
+                llcrnrlon=xmin,
+                urcrnrlon=xmax,
+                lon_0=(ymin+ymax)/2,
                 resolution='c')
 
+    col0, col1 = int((ul_coord[1] - geotransform[0] + xres * 0.5)/geotransform[1]), \
+                 int((lr_coord[1] - geotransform[0] + xres * 0.5)/geotransform[1])
+    row0, row1 = int((ul_coord[0] - geotransform[3])/geotransform[5]), \
+                 int((lr_coord[0] - geotransform[3])/geotransform[5])
 
-    # lon = (60.0, 10.0)
-    # lat = (-140, -60)
+    # print(ul_coord)
+    # print(lr_coord)
+    # print(col0, col1)
+    # print(row0, row1)
+    #print(img.shape)
+    img = img[row0:row1, col0:col1]
+    #print(img.shape)
 
     # make grid of xy coords for plotting
     xy_source = np.mgrid[ymax+yres:ymin:yres, xmin:xmax+xres:xres]
@@ -103,7 +114,9 @@ def do_plot(img, img_name, out_dir, contrast_stretch, low, high, ul_coord, lr_co
 
     xx, yy = convert_xy(xy_source, inproj, outproj)
 
-    im = m.pcolormesh(xx, yy, data[:], alpha=0.9, cmap=plt.cm.RdBu, shading='auto')
+    im = m.pcolormesh(xx, yy, img[:], alpha=0.9, cmap=plt.cm.RdBu, shading='auto')
+    print(img)
+
     m.drawcoastlines(linewidth=1)
     m.drawcountries(linewidth=1)
 
@@ -126,8 +139,11 @@ if __name__ == "__main__":
     os.chdir(workspace)
     img_0 = 'GRD-3_2018152-2018181_GRFO_JPLEM_BA01_0600_LND_v03.tif'
 
-    ul = (60.0, -140)
-    lr = (10.0, -60.0)
+    ul = (90.0, -180.0)
+    lr = (-90.0, 180.0)
+
+    # ul = (89, -179)
+    # lr = (0, 0)
 
     # use gdal to read in data as np array
     ds = gdal.Open(os.path.join(workspace, img_0))
