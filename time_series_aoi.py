@@ -142,6 +142,8 @@ def box_plot(years, aoi_name, csv_path):
     # Create an axis instance
     ax_box = fig_box.add_subplot(111)
     ax_box.set_facecolor('black')
+
+    # TODO there is some weird issue going on here that throws a UserWarning
     ax_box.set_xticklabels(list(years.columns),
                            color='white')
 
