@@ -9,8 +9,8 @@ import seaborn as sns
 import rasterio as rio
 import timeit
 from cycler import cycler
-import matplotlib as mpl
 import matplotlib.pyplot as plt
+from scipy import stats
 
 
 def tif_to_np(tif_fname):
@@ -23,13 +23,18 @@ def tif_to_np(tif_fname):
 
 def make_prod_list(in_dir, prdct, year, day):
     if 'GRD-3' in prdct:
+        # t_file_list = glob.glob(os.path.join(in_dir,
+        #                                      '{prdct}*_{year}{day:03d}*.tif'.format(prdct=prdct,
+        #                                                                             day=day,
+        #                                                                             year=year)))
+
         t_file_list = glob.glob(os.path.join(in_dir,
-                                             '{prdct}*_{year}{day:03d}*.tif'.format(prdct=prdct,
+                                             '{prdct}*_{year}{day}*.tif'.format(prdct=prdct,
                                                                                     day=day,
                                                                                     year=year)))
     elif 'MCD' in prdct or 'VNP' in prdct or 'VJ1' in prdct:
         t_file_list = glob.glob(os.path.join(in_dir,
-                                             '{prdct}*{year}{day:03d}*.tif'.format(prdct=prdct,
+                                             '{prdct}*{year}{day}*.tif'.format(prdct=prdct,
                                                                                    day=day, year=year)))
     elif 'LC08' in prdct:
         dt_string = str(year) + '-' + str(day)
@@ -121,10 +126,11 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     for ax_stack in axes:
         col = str(yr)
         ax_stack.plot(years[col])
+        print(years[col].mean())
         ax_stack.set_xlim(80, 250)
-        ax_stack.set_ylim(0.0, 1.0)
+        ax_stack.set_ylim(-0.005, 0.005)
         ax_stack.grid(b=True, which='major', color='LightGrey', linestyle='-')
-        ax_stack.set_yticks([0.5])
+        ax_stack.set_yticks([0.0])
         ax_stack.tick_params(
             axis='y',
             labelsize=5
@@ -140,7 +146,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
 
     # This only needs to apply to the last ax
     ax_stack.set_xlabel('DOY')
-    ax_stack.set_ylim(0.0, 1.0)
+    ax_stack.set_ylim(-0.005, 0.005)
     fig_stack.suptitle(aoi_name, y=0.9)
 
     # Make subdir if needed and save fig
@@ -154,7 +160,9 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
 
 def box_plot(years, aoi_name, csv_path):
     # Quck boxplot for each year
-    overall_mean = years.stack().mean()
+    overall_mean = round(years.stack().mean(), 2)
+    overall_min = round(years.stack().min(), 2)
+    overall_max = round(years.stack().max(), 2)
     data_to_plot = years.to_numpy()
 
     # Filter out the NaNs, otherwise the boxplot is unhappy
@@ -164,25 +172,47 @@ def box_plot(years, aoi_name, csv_path):
 
     # Create a figure instance
     fig_box = plt.figure(1, figsize=(9, 6))
-    fig_box.suptitle(aoi_name)
+    fig_box.suptitle(aoi_name, color='white')
+    fig_box.set_facecolor('black')
 
     # Create an axis instance
     ax_box = fig_box.add_subplot(111)
-    ax_box.set_xticklabels(list(years.columns))
+    ax_box.set_facecolor('black')
+    ax_box.set_xticklabels(list(years.columns),
+                           color='white')
+
     ax_box.tick_params(
         axis='x',
-        labelsize=5,
-        labelrotation=45
-                       )
-    ax_box.set_ylim(0.0, 1.0)
-    ax_box.grid(b=True, which='major', color='LightGrey', linestyle='-')
-    ax_box.set_yticks([overall_mean])
+        labelsize=8,
+        labelrotation=45,
+        color='grey')
+
     ax_box.tick_params(
         axis='y',
-        labelsize=5
-                   )
-    ax_box.set_ylabel('White sky Albedo (Overall Mean)')
-    outlier_marker = dict(markerfacecolor='black', fillstyle=None, marker='.')
+        labelsize=5,
+        color='grey')
+
+    ax_box.set_ylim(overall_min*2,
+                    overall_max*2)
+    ax_box.grid(b=True,
+                which='major',
+                color='LightGrey',
+                linestyle='-')
+
+    ax_box.spines['bottom'].set_color('white')
+    ax_box.spines['left'].set_color('white')
+    ax_box.spines['top'].set_color('white')
+    ax_box.spines['right'].set_color('white')
+
+    ax_box.set_yticks([overall_min, overall_mean, overall_max])
+    ax_box.set_yticklabels([overall_min, overall_mean, overall_max],
+                           color='white')
+
+    ax_box.set_ylabel('Grace Anomalies',
+                      color='white')
+
+    ax_box.set_xlabel('Year',
+                      color='white')
 
     # print(filtered_data[0].shape)
     # data_years = np.empty(filtered_data[0].shape)
@@ -191,29 +221,19 @@ def box_plot(years, aoi_name, csv_path):
     # print(data_years.shape)
     data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
 
-    print(len(filtered_data))
-
-    data_2019 = filtered_data[19]
-    i = 0
-
-    # Store t-test of each year vs 2019 in txt file
-    stats_txt_name = csv_path[:-4] + '_t_stats_vs_2019.txt'
-    stats_txt = open(stats_txt_name, 'w')
-
-    for dst in filtered_data:
-        data_year = filtered_data[i]
-        #print('T test results for year {x}'.format(x=str(i+2000)))
-        stats_txt.write('T test results for year {x}'.format(x=str(i+2000)) + '\n')
-        #print(stats.ttest_ind(data_year, data_2019))
-        stats_txt.write(str(stats.ttest_ind(data_year, data_2019)) + '\n')
-        #print('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()))
-        stats_txt.write('Mean of year {x} is {y}'.format(x=str(i+2000), y=data_year.mean()) + '\n')
-        i += 1
-
-    stats_txt.close()
-
     # Create the boxplot
-    bp = ax_box.boxplot(filtered_data, flierprops=outlier_marker)
+    bp = ax_box.boxplot(filtered_data,
+                        boxprops=dict(color='lightgray', linewidth=1.5),
+                        whiskerprops=dict(color='white'),
+                        flierprops=dict(markerfacecolor='white', fillstyle=None, marker='.'),
+                        medianprops=dict(color='orange'),
+                        capprops=dict(color='orange'))
+
+    ax_box.grid(b=True,
+                which='major',
+                color='grey',
+                linestyle='--',
+                linewidth='0.7')
 
     # Make subdir if needed and save fig
     file_path, file_name = os.path.split(csv_path)
@@ -225,34 +245,63 @@ def box_plot(years, aoi_name, csv_path):
 
 def overpost_all_plot(years, aoi_name, csv_path):
     ### Create a plot where all the years are combined in a single graph
-
     fig_comb = plt.figure(figsize=(10, 5))
+    fig_comb.set_facecolor('black')
     ax_comb = fig_comb.add_subplot(111)
+    ax_comb.set_facecolor('black')
 
     # Set colormap and cycler to automatically apply colors to years plotted below
     n = len(years.columns)
-    color = plt.cm.hsv(np.linspace(0, 1, n))
-    mpl.rcParams['axes.prop_cycle'] = cycler('color', color)
+    color = plt.cm.plasma(np.linspace(0, 1, n))
+    c = cycler('color', color)
+    plt.rc('axes', prop_cycle=c)
+    plt.rc('lines', linewidth=0.5)
+
+    ax_comb.set_prop_cycle(c)
+    #mpl.rcParams['axes.prop_cycle'] = cycler('color', color)
+
+    min_display = 0
+    max_display = 0
 
     # Add each year to same plot -- for some reason a 'undefined' values comes back first, so
     # check for year part first
     for ycol in years.columns:
         if '20' in ycol:
-            ax_comb.plot(years.index, years[ycol], label=str(ycol), alpha=0.2)
+            if years[ycol].max() > max_display:
+                max_display = years[ycol].max()
+            if years[ycol].min() < min_display:
+                min_display = years[ycol].min()
 
-    ax_comb.plot(years.index, years['2019'], label='2019 Emphasis', color='orange')
-    ax_comb.set_xlabel('DOY')
-    ax_comb.set_ylabel('White Sky Albedo')
-    ax_comb.set_ylim(0.0, 1.0)
-    fig_comb.suptitle(aoi_name)
-    plt.legend(ncol=4, loc='lower left', fontsize=10)
+            s1mask = np.isfinite(years[ycol])
+            ax_comb.plot(years.index[s1mask],
+                         years[ycol][s1mask],
+                         label=str(ycol),
+                         marker='o',
+                         ms=4,
+                         linestyle='dashed')
+
+    # auto-adjust range
+    min_display *= 2
+    max_display *= 2
+
+    ax_comb.tick_params(colors='white')
+    ax_comb.set_xlabel('DOY', color='white')
+    ax_comb.set_ylabel('GRACE Anomaly', color='white')
+    ax_comb.set_ylim(min_display, max_display)
+    fig_comb.suptitle(aoi_name, color='white')
+    lgnd = plt.legend(ncol=4, loc='lower left', fontsize=10)
+
+    # to set legend transparency
+    # TODO not working
+    for lh in lgnd.legendHandles:
+        lh._legmarker.set_alpha(0)
 
     # Save fig in figs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
-    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + 'white_sky_time_series_overpost_stack.png')
+    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + 'grace_time_series_overpost_stack.png')
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
-    plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
 
 
 def year_vs_avg_plot(years, aoi_name, csv_path):
@@ -355,7 +404,7 @@ def main():
         os.makedirs(fig_dir)
 
     #years = [args.years]
-    years = [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+    years = [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
              2017, 2018, 2019, 2020]
 
     # TODO define these
@@ -375,36 +424,38 @@ def main():
             sites_dict[key] = row[1:]
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
+    smpl_results_df = pd.DataFrame(columns=['yyyyddd', 'value'])
     for year in years:
-        print("extracting values for year:")
-        print(year)
+        print(f"extracting values for year: {year}")
         doy_list = []
         if check_leap(year):
             for i in range(1, 367):
-                doy_list.append(i)
+                doy_list.append(convert_to_doy(i))
         else:
             for i in range(1, 366):
-                doy_list.append(i)
+                doy_list.append(convert_to_doy(i))
 
         # Make a blank pandas dataframe that results will be appended to,
         # and start it off with all possible doys (366)
-        year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
+        #year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
 
         # Create empty array for mean
-        tif_mean = []
+        #tif_mean = []
         for day in doy_list:
             # Open the ONLY BAND IN THE TIF! Cannot currently deal with multiband tifs
             t_file_list = make_prod_list(base_dir, prdct, year, day)
-            file_name = '{in_dir}/{prdct}*_{year}{day:03d}*.tif'.format(in_dir=base_dir,
-                                                                       prdct=prdct,
-                                                                       day=day,
-                                                                       year=year)
+            # file_name = '{in_dir}/{prdct}*_{year}{day:03d}*.tif'.format(in_dir=base_dir,
+            #                                                            prdct=prdct,
+            #                                                            day=day,
+            #                                                            year=year)
 
             # See if there is a raster for the date, if not use a fill value for the graph
             if len(t_file_list) == 0:
                 # print('File not found: ' + file_name)
                 pixel_values = [np.nan] * len(sites_dict)
+                new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
+                smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
             elif len(t_file_list) > 1:
                 print('Multiple matching files found for same date! Please remove one.')
                 sys.exit()
@@ -414,61 +465,63 @@ def main():
                 # Extract pixel values and append to dataframe
                 try:
                     pixel_values = extract_pixel_values(sites_dict, t_file_day)
-                    # print(pixel_values)
+
+                    new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
+                    smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
                 except:
                     # print('Warning! Pixel out of raster boundaries!')
                     pixel_values = [np.nan] * len(sites_dict)
-                #print(pixel_values)
-            tif_mean.append(pixel_values)
 
-        smpl_results_df = pd.DataFrame(tif_mean)
-        smpl_results_df = smpl_results_df * 0.001
-        doy_list_year = doy_list
-
-        i = 0
-        for doy in doy_list_year:
-            doy_list_year[i] = str(year) + convert_to_doy(doy)
-            i += 1
-
-        smpl_results_df['yyyyddd'] = doy_list
-
-        # just moving some cols around
-        cols = smpl_results_df.columns.tolist()
-        cols = cols[-1:] + cols[:-1]
-        smpl_results_df = smpl_results_df[cols]
-
-        # get the calendar dates back
-        smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
-                                                    format='%Y%j')
-        smpl_results_df.set_index('date', inplace=True)
-        smpl_results_df = smpl_results_df.groupby('date').mean()
-
-        series = smpl_results_df.squeeze()
-        series = series.reindex(dt_indx, fill_value=np.NaN)
-        groups = series.groupby(pd.Grouper(freq='A'))
-        years = pd.DataFrame()
+                    new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
+                    smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
 
 
+    smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
+                                                format='%Y%j')
 
-        # This is how the dataframe is set up with each column being a year of data, each row a doy
-        for name, group in groups:
-            years[name.year] = group.values[:364]
-            print(name.year, group.values[:364])
+    smpl_results_df.set_index('date', inplace=True)
+    smpl_results_df.drop(['yyyyddd'], axis=1)
 
-        sys.exit()
-        vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, sites_csv_input)
+    # just moving some cols around
+    # cols = smpl_results_df.columns.tolist()
+    # cols = cols[-1:] + cols[:-1]
+    # smpl_results_df = smpl_results_df[cols]
+
+    # get the calendar dates back
+    # smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
+    #                                             format='%Y%j')
+    #smpl_results_df.set_index('date', inplace=True)
+    smpl_results_df = smpl_results_df.groupby('date').mean()
+
+    series = smpl_results_df.squeeze()
+    series = series.reindex(dt_indx, fill_value=np.NaN)
+    groups = series.groupby(pd.Grouper(freq='A'))
+    years = pd.DataFrame()
 
 
-        # Do plotting and save output PER YEAR (individual csv per year)
-        year_scatter_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
+    # This is how the dataframe is set up with each column being a year of data, each row a doy
+    for name, group in groups:
+        years[name.year] = group.values[:364]
+        #print(name.year, group.values[:364])
 
-        # Export data to csv
-        os.chdir(fig_dir)
-        file_name = sites_csv_input.split(sep='/')[-1]
-        output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
-        csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
-        print('writing csv: ' + csv_name)
-        smpl_results_df.to_csv(csv_name, index=False)
+    # make columns into strings for easier plot labeling
+    years.columns = years.columns.astype(str)
+
+    #vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, sites_csv_input)
+    #overpost_all_plot(years, aoi_name, sites_csv_input)
+    box_plot(years, aoi_name, sites_csv_input)
+    sys.exit()
+
+    # Do plotting and save output PER YEAR (individual csv per year)
+    year_scatter_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
+
+    # Export data to csv
+    os.chdir(fig_dir)
+    file_name = sites_csv_input.split(sep='/')[-1]
+    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
+    csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
+    print('writing csv: ' + csv_name)
+    smpl_results_df.to_csv(csv_name, index=False)
 
 
 if __name__ == '__main__':
