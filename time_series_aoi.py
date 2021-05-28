@@ -23,33 +23,29 @@ def tif_to_np(tif_fname):
 
 def make_prod_list(in_dir, prdct, year, day):
     if 'GRD-3' in prdct:
-        # t_file_list = glob.glob(os.path.join(in_dir,
-        #                                      '{prdct}*_{year}{day:03d}*.tif'.format(prdct=prdct,
-        #                                                                             day=day,
-        #                                                                             year=year)))
-
         t_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}*_{year}{day}*.tif'.format(prdct=prdct,
-                                                                                    day=day,
-                                                                                    year=year)))
+                                                                                day=day,
+                                                                                year=year)))
+
     elif 'MCD' in prdct or 'VNP' in prdct or 'VJ1' in prdct:
         t_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}*{year}{day}*.tif'.format(prdct=prdct,
-                                                                                   day=day, year=year)))
+                                                                               day=day,
+                                                                               year=year)))
     elif 'LC08' in prdct:
         dt_string = str(year) + '-' + str(day)
         date_complete = datetime.strptime(dt_string, '%Y-%j')
         mm = date_complete.strftime('%m')
         dd = date_complete.strftime('%d')
         t_file_list = glob.glob(os.path.join(in_dir, '{prdct}*_{year}{month}{day}_*.h*'.format(prdct=prdct,
-                                                                                                     month=mm,
-                                                                                                     day=dd,
-                                                                                                     year=year)))
+                                                                                               month=mm,
+                                                                                               day=dd,
+                                                                                               year=year)))
     else:
         print('Product type unknown! Please check that input is MCD, VNP, VJ1 or LC08.')
         sys.exit()
 
-    #print('{prdct}*{year}{day:03d}*.tif'.format(prdct=prdct, day=day, year=year))
     return t_file_list
 
 
@@ -80,38 +76,6 @@ def extract_pixel_values(sites_dict, t_file_day):
     return results
 
 
-def year_scatter_plot(year, smpl_results_df, fig_dir, prdct, sites_dict):
-    # This is for the the monthly averages
-
-    sns.set_style('darkgrid')
-    smpl_results_df.rename(columns={0: 'id_0', 1: 'id_1', 2: 'id_2', 3: 'id_3', 4: 'id_4'}, inplace=True)
-
-    for site in smpl_results_df.columns.tolist():
-        if site != 'doy':
-            # Create a seaborn scatterplot (or regplot for now, small differences)
-            sct = sns.scatterplot(x='doy', y=site, data=smpl_results_df)
-
-            # sct = sns.regplot(x='doy', y=site, data=smpl_results_df, marker='o', label='sw ' ,
-            #                   fit_reg=False, scatter_kws={'color':'darkblue', 'alpha':0.3,'s':20})
-
-            sct.set_ylim(-0.00005, 0.00005)
-            sct.set_xlim(1, 366)
-            sct.legend(loc='best')
-
-            # Access the figure, add title
-            plt_name = str(str(year) + ' ' + prdct)
-            plt.title(plt_name)
-            plt.show()
-
-            plt_name = plt_name.replace(' ', '_') + '_' + str(site)
-
-            # Save each plot to figs dir
-            print('Saving plot to: ' + '{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
-            plt.savefig('{fig_dir}/{plt_name}.png'.format(fig_dir=fig_dir, plt_name=plt_name))
-            plt.clf()
-            sys.exit()
-
-
 def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     ### Create plot with all years stacked vertically in a series of parallel time series graphs
     ncols = 1
@@ -126,7 +90,7 @@ def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
     for ax_stack in axes:
         col = str(yr)
         ax_stack.plot(years[col])
-        print(years[col].mean())
+        #print(years[col].mean())
         ax_stack.set_xlim(80, 250)
         ax_stack.set_ylim(-0.005, 0.005)
         ax_stack.grid(b=True, which='major', color='LightGrey', linestyle='-')
@@ -256,9 +220,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     c = cycler('color', color)
     plt.rc('axes', prop_cycle=c)
     plt.rc('lines', linewidth=0.5)
-
     ax_comb.set_prop_cycle(c)
-    #mpl.rcParams['axes.prop_cycle'] = cycler('color', color)
 
     min_display = 0
     max_display = 0
@@ -302,6 +264,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'figs')):
         os.mkdir(os.path.join(file_path, 'figs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
+    plt.close()
 
 
 def year_vs_avg_plot(years, aoi_name, csv_path):
@@ -370,52 +333,20 @@ def convert_to_doy(doy):
         sys.exit(1)
 
 
-def main():
-    # CLI args
-    parser = ArgumentParser()
-    # TODO maybe delete years, and just plot all available data
-    parser.add_argument('-y', '--years', dest='years', help='Years to extract data for.', metavar='YEARS')
-
-    parser.add_argument('-d', '--input-dir', dest='base_dir',
-                        help='Base directory containing sample and dir of imagery data called the product name'
-                             ', e.g. ../MCD43A3/',
-                        metavar='IN_DIR')
-    parser.add_argument('-s', '--sites', dest='sites_csv_fname', help='CSV with no headings containing smpls. '+\
-                        'must look like: id,lat,long',
-                        metavar='SITES')
-    parser.add_argument('-p', '--product', dest='prdct', help='Imagery product to be input, e.g. GRACE.',
-                        metavar='PRODUCT')
-    args = parser.parse_args()
-
-    #TODO to avoid egregious geolocation errors, I should require the csv to have headers (currently it cannot)
-    #and the headers should be id,lat,long, so I can check that the latitude and longitude cols are correct by
-    #their name in the csv
-
-    # for dev just hardcode
-    # prdct = args.prdct
-    # base_dir = args.base_dir
-    # fig_dir = os.path.join(base_dir, 'time_series')
-
-    prdct = 'GRD-3'
-    base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name):
     fig_dir = os.path.join(base_dir, 'time_series')
 
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
 
-    #years = [args.years]
-    years = [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-             2017, 2018, 2019, 2020]
+    years = [year for year in range(start_date.year, end_date.year+1)]
 
-    # TODO define these
-    aoi_name = 'DC'
-    dt_indx = pd.date_range('2002-01-01', '2020-12-31')
+    dt_indx = pd.date_range(start_date, end_date)
     strt_year = dt_indx[0].to_pydatetime().year
     end_year = dt_indx[-1].to_pydatetime().year
     nyears = end_year - strt_year
 
-    #sites_csv_input = os.path.join(base_dir, args.sites_csv_fname)
-    sites_csv_input = os.path.join(base_dir, 'sample.csv')
+    sites_csv_input = os.path.join(base_dir, csv_name)
     sites_dict = {}
     with open(sites_csv_input, mode='r') as sites_csv:
         reader = csv.reader(sites_csv)
@@ -435,20 +366,15 @@ def main():
             for i in range(1, 366):
                 doy_list.append(convert_to_doy(i))
 
-        # Make a blank pandas dataframe that results will be appended to,
-        # and start it off with all possible doys (366)
-        #year_smpl_cmb_df = pd.DataFrame(doy_list, columns=['doy'])
         # Loop through each site and extract the pixel values
-
-        # Create empty array for mean
-        #tif_mean = []
         for day in doy_list:
             # Open the ONLY BAND IN THE TIF! Cannot currently deal with multiband tifs
             t_file_list = make_prod_list(base_dir, prdct, year, day)
-            # file_name = '{in_dir}/{prdct}*_{year}{day:03d}*.tif'.format(in_dir=base_dir,
-            #                                                            prdct=prdct,
-            #                                                            day=day,
-            #                                                            year=year)
+
+            file_name = '{in_dir}/{prdct}*_{year}{day}*.tif'.format(in_dir=base_dir,
+                                                                        prdct=prdct,
+                                                                        day=day,
+                                                                        year=year)
 
             # See if there is a raster for the date, if not use a fill value for the graph
             if len(t_file_list) == 0:
@@ -458,7 +384,7 @@ def main():
                 smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
             elif len(t_file_list) > 1:
                 print('Multiple matching files found for same date! Please remove one.')
-                sys.exit()
+                sys.exit(1)
             else:
                 # print('Found file: ' + file_name)
                 t_file_day = t_file_list[0]
@@ -475,45 +401,31 @@ def main():
                     new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
                     smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
 
-
+    # rejig the date
     smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
-                                                format='%Y%j')
-
+                                             format='%Y%j')
     smpl_results_df.set_index('date', inplace=True)
     smpl_results_df.drop(['yyyyddd'], axis=1)
-
-    # just moving some cols around
-    # cols = smpl_results_df.columns.tolist()
-    # cols = cols[-1:] + cols[:-1]
-    # smpl_results_df = smpl_results_df[cols]
-
-    # get the calendar dates back
-    # smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
-    #                                             format='%Y%j')
-    #smpl_results_df.set_index('date', inplace=True)
     smpl_results_df = smpl_results_df.groupby('date').mean()
 
+    # prep the dataset to be split into columns, one per year
     series = smpl_results_df.squeeze()
     series = series.reindex(dt_indx, fill_value=np.NaN)
     groups = series.groupby(pd.Grouper(freq='A'))
-    years = pd.DataFrame()
-
+    years_df = pd.DataFrame()
 
     # This is how the dataframe is set up with each column being a year of data, each row a doy
     for name, group in groups:
-        years[name.year] = group.values[:364]
-        #print(name.year, group.values[:364])
+        years_df[name.year] = group.values[:364]
 
     # make columns into strings for easier plot labeling
-    years.columns = years.columns.astype(str)
+    years_df.columns = years_df.columns.astype(str)
 
-    #vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, sites_csv_input)
-    #overpost_all_plot(years, aoi_name, sites_csv_input)
-    box_plot(years, aoi_name, sites_csv_input)
-    sys.exit()
+    # make the plots
 
-    # Do plotting and save output PER YEAR (individual csv per year)
-    year_scatter_plot(year, smpl_results_df, fig_dir, prdct, sites_dict)
+    #vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
+    overpost_all_plot(years_df, aoi_name, sites_csv_input)
+    box_plot(years_df, aoi_name, sites_csv_input)
 
     # Export data to csv
     os.chdir(fig_dir)
@@ -524,5 +436,5 @@ def main():
     smpl_results_df.to_csv(csv_name, index=False)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

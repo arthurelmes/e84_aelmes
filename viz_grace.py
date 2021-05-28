@@ -34,7 +34,27 @@ def convert_xy(xy_source, inproj, outproj):
     return xx, yy
 
 
-def do_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
+def make_all_plots(data_dir, ul, lr):
+    data_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+    out_dir = os.path.join(data_dir, 'png')
+    os.chdir(data_dir)
+    #img_0 = 'GRD-3_2018152-2018181_GRFO_JPLEM_BA01_0600_LND_v03.tif'
+
+    # make output dir if it doesn't exist
+    if not os.path.isdir(out_dir):
+        os.mkdir(out_dir)
+
+    # this will be user-entered via cmd
+    # ul = (70, -130)
+    # lr = (10, -20)
+
+    # loop over all matching input files in workspace, create plot for each
+    for file in glob.glob(os.path.join(data_dir, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
+        print(file)
+        make_plot(file, out_dir, True, ul, lr)
+
+
+def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     # use gdal to read in data as np array
     ds = gdal.Open(img_file)
     data = ds.ReadAsArray()
@@ -132,21 +152,21 @@ def do_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     ds = None
 
 
-if __name__ == '__main__':
-    workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
-    out_dir = os.path.join(workspace, 'png')
-    os.chdir(workspace)
-    #img_0 = 'GRD-3_2018152-2018181_GRFO_JPLEM_BA01_0600_LND_v03.tif'
-
-    # make output dir if it doesn't exist
-    if not os.path.isdir(out_dir):
-        os.mkdir(out_dir)
-
-    # this will be user-entered via cmd
-    ul = (70, -130)
-    lr = (10, -20)
-
-    # loop over all matching input files in workspace, create plot for each
-    for file in glob.glob(os.path.join(workspace, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
-        print(file)
-        do_plot(file, out_dir, True, ul, lr)
+# if __name__ == '__main__':
+#     workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
+#     out_dir = os.path.join(workspace, 'png')
+#     os.chdir(workspace)
+#     #img_0 = 'GRD-3_2018152-2018181_GRFO_JPLEM_BA01_0600_LND_v03.tif'
+#
+#     # make output dir if it doesn't exist
+#     if not os.path.isdir(out_dir):
+#         os.mkdir(out_dir)
+#
+#     # this will be user-entered via cmd
+#     ul = (70, -130)
+#     lr = (10, -20)
+#
+#     # loop over all matching input files in workspace, create plot for each
+#     for file in glob.glob(os.path.join(workspace, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
+#         print(file)
+#         do_plot(file, out_dir, True, ul, lr)
