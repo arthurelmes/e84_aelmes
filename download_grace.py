@@ -78,16 +78,15 @@ def cleanup(dir):
             os.remove(file)
 
 
-# if __name__ == '__main__':
-#     workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
-#     os.chdir(workspace)
-#
-#     # TODO when users enter year-mm, add the day 1 of that month to construct complete date
-#     date_0 = datetime.strptime('2003-01-01', '%Y-%m-%d')
-#     date_1 = datetime.strptime('2021-12-01', '%Y-%m-%d')
-#
-#     dl_data(date_0, date_1)
-#
-#     # TODO this needs a real solution!
-#     cleanup(workspace)
+if __name__ == '__main__':
+    workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
+    os.chdir(workspace)
+
+    date_0 = datetime.strptime('2003-01-01', '%Y-%m-%d')
+    date_1 = datetime.strptime('2021-12-01', '%Y-%m-%d')
+
+    dl_data(workspace, date_0, date_1)
+
+    # TODO this needs a real solution!
+    cleanup(workspace)
 

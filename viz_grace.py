@@ -1,17 +1,10 @@
 import matplotlib.pyplot as plt
-#import rasterio as rio
-#from rasterio.warp import transform
 import os
-#from skimage import exposure
 import numpy as np
-#from matplotlib.font_manager import FontProperties
-#from PIL import Image
 from mpl_toolkits.basemap import Basemap
 import osr
 import gdal
 import glob
-
-import sys
 
 # TODO maybe? break out rast_to_array to separate func
 
@@ -67,29 +60,10 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     # parse geotransform details
     xres = gt[1]
     yres = gt[5]
-
-    # WORKING LIMITS get the edge coordinates and add half the resolution
-    # to go to center coordinates
-    # xmin = gt[0] + xres * 0.5
-    # xmax = gt[0] + (xres * ds.RasterXSize) - xres * 0.5
-    # ymin = gt[3] + (yres * ds.RasterYSize)+ yres * 0.5
-    # ymax = gt[3] - yres * 0.5
-
     xmin = ul_coord[1]
     xmax = lr_coord[1]
     ymax = ul_coord[0]
     ymin = lr_coord[0]
-
-    # for debugging
-    # xmin = -160
-    # xmax = -20
-    # ymax = 70
-    # ymin = 0
-    # print(f'ymax is: {ymax}')
-    # print(f'ymin is: {ymin}')
-    # print(f'xmax is: {xmax}')
-    # print(f'xmin is: {xmin}')
-    # print(f'lon_o is: {(xmax + xmin) / 2}')
 
     # TODO figure out weird quirk in central longitude
     m = Basemap(projection='laea',
@@ -97,11 +71,10 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
                 urcrnrlat=ymax,
                 llcrnrlon=xmin,
                 urcrnrlon=xmax,
-                #lon_0=(xmax + xmin),
-                lon_0=(-70),
-                lat_0=30,
-                lat_1=20,
-                lat_2=40,
+                lon_0=((xmax+xmin)/2),
+                lat_0=ymax+10,
+                lat_1=((ymax+ymin)/2),
+                lat_2=ymin-10,
                 resolution='c')
 
     # make grid of xy coords for plotting
@@ -119,31 +92,57 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     # row0, row1 = int((180 + xmin) / gt[5]), \
     #              int((180 + xmax) / gt[5])
 
-    # for debugging
-    # print(90-ymax)
-    # print(90-ymin)
-    # print(xmin+180)
-    # print(xmax+180)
-
     # slice data based on user extent
     data = data[90 - ymax:90 - ymin, xmin + 180:xmax + 180]
 
     # plotting stuff
     fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(111)
     title = 'GRACE Land Water-Equivalent-Thickness Surface Mass Anomaly Rel 6.0 v 03 for dates: ' + img_file.split('/')[-1][6:21]
-    plt.title(title, loc='center', pad=22)
+    ax.set_title(title, loc='center', pad=22, color='white')
 
-    im = m.pcolormesh(xx, yy, data, cmap=plt.cm.plasma, shading='auto', vmin=-0.4, vmax=0.4)
+    # for now, manually set min/max for colormap
+    stretch_min = -0.4
+    stretch_max = 0.4
+
+    im = m.pcolormesh(xx,
+                      yy,
+                      data,
+                      cmap=plt.cm.plasma,
+                      shading='auto',
+                      vmin=stretch_min,
+                      vmax=stretch_max)
+    fig.set_facecolor('black')
+    ax.set_facecolor('black')
+    ax.tick_params(
+        axis='x',
+        color='white'
+    )
 
     # annotate
+    # credit to: https://stackoverflow.com/questions/31411793/basemap-drawparallels-tick-label-color
+    def setcolor(x, color):
+        for m in x:
+            for t in x[m][1]:
+                t.set_color(color)
+
     m.drawcountries()
     m.drawcoastlines(linewidth=.5)
-    parallels = np.arange(0., 81, 10.)
-    m.drawparallels(parallels, labels=[False, True, True, False])
-    meridians = np.arange(10., 351., 20.)
-    m.drawmeridians(meridians, labels=[True, False, False, True])
-    m.colorbar(im, location='bottom')
-    #plt.clim(-2.0, 0.5)
+
+    # for some reason getting lat/long labels to change color requires this funny trick
+    merid = m.drawmeridians(np.arange(0, 361, 20), labels=[1, 0, 0, 1], color='white')
+    setcolor(merid, 'white')
+    par = m.drawparallels(np.arange(-90, 91, 20), labels=[1, 0, 0, 1], color='white')
+    setcolor(par, 'white')
+
+    cb = m.colorbar(im, location='bottom', pad=0.5, ax=ax)
+
+    cb.set_label('GRACE Groundwater Anomaly', color='white')
+    cb.ax.xaxis.set_tick_params(color='white')
+    cb.ax.yaxis.set_tick_params(color='white')
+    cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
+                          color='white')
+
 
     fig.savefig('{a}{b}_{c}_{d}.png'.format(a=o_dir + '/',
                                             b=os.path.basename(img_file[:-4]),
@@ -152,21 +151,20 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     ds = None
 
 
-# if __name__ == '__main__':
-#     workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
-#     out_dir = os.path.join(workspace, 'png')
-#     os.chdir(workspace)
-#     #img_0 = 'GRD-3_2018152-2018181_GRFO_JPLEM_BA01_0600_LND_v03.tif'
-#
-#     # make output dir if it doesn't exist
-#     if not os.path.isdir(out_dir):
-#         os.mkdir(out_dir)
-#
-#     # this will be user-entered via cmd
-#     ul = (70, -130)
-#     lr = (10, -20)
-#
-#     # loop over all matching input files in workspace, create plot for each
-#     for file in glob.glob(os.path.join(workspace, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
-#         print(file)
-#         do_plot(file, out_dir, True, ul, lr)
+if __name__ == '__main__':
+    workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
+    out_dir = os.path.join(workspace, 'png')
+    os.chdir(workspace)
+
+    # make output dir if it doesn't exist
+    if not os.path.isdir(out_dir):
+        os.mkdir(out_dir)
+
+    # this will be user-entered via cmd
+    ul = (-10, 100)
+    lr = (-45, 160)
+
+    # loop over all matching input files in workspace, create plot for each
+    for file in glob.glob(os.path.join(workspace, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
+        print(file)
+        make_plot(file, out_dir, True, ul, lr)

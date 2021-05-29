@@ -9,7 +9,7 @@ def make_gif(png_dir, gif_dir):
     for file_name in gif_list:
         images.append(imageio.imread(png_dir + file_name))
     try:
-        imageio.mimsave(gif_dir + file_name + '.gif', images, 'GIF', duration=0.1)
+        imageio.mimsave(gif_dir + file_name + '.gif', images, 'GIF', duration=0.75)
     except:
         print('failed to make gif for {}'.format(file_name))
 

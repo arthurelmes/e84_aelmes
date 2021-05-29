@@ -416,16 +416,20 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
     groups = series.groupby(pd.Grouper(freq='A'))
     years_df = pd.DataFrame()
 
-    # This is how the dataframe is set up with each column being a year of data, each row a doy
     for name, group in groups:
-        years_df[name.year] = group.values[:364]
+        print(name, group)
+        if len(group.values) > 1:
+            years_df[name.year] = group.values[:364]
+
+    # drop any years that have no data at all
+    years_df = years_df.dropna(axis=1, how='all')
 
     # make columns into strings for easier plot labeling
     years_df.columns = years_df.columns.astype(str)
 
     # make the plots
 
-    #vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
+    # vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
     overpost_all_plot(years_df, aoi_name, sites_csv_input)
     box_plot(years_df, aoi_name, sites_csv_input)
 
@@ -438,5 +442,11 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
     smpl_results_df.to_csv(csv_name, index=False)
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+    prdct = "GRD-3"
+    aoi_name = "TESTING"
+    start_date = datetime.strptime('2000-01-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2020-01-01', '%Y-%m-%d')
+    csv_name = os.path.join(base_dir, 'sample.csv')
+    make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name)
