@@ -1,15 +1,13 @@
 
-import os, glob, sys, pyproj, csv, statistics
-from argparse import ArgumentParser
+import os, glob, sys, csv
 import numpy as np
 import pandas as pd
-
 from datetime import datetime
-import seaborn as sns
 import rasterio as rio
-import timeit
 from cycler import cycler
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
 from scipy import stats
 
 
@@ -136,16 +134,14 @@ def box_plot(years, aoi_name, csv_path):
 
     # Create a figure instance
     fig_box = plt.figure(1, figsize=(9, 6))
-    fig_box.suptitle(aoi_name, color='white')
+    fig_box.suptitle(aoi_name, color='w')
     fig_box.set_facecolor('black')
 
     # Create an axis instance
     ax_box = fig_box.add_subplot(111)
     ax_box.set_facecolor('black')
 
-    # TODO there is some weird issue going on here that throws a UserWarning
-    ax_box.set_xticklabels(list(years.columns),
-                           color='white')
+    tick_labels = years.columns
 
     ax_box.tick_params(
         axis='x',
@@ -155,7 +151,7 @@ def box_plot(years, aoi_name, csv_path):
 
     ax_box.tick_params(
         axis='y',
-        labelsize=5,
+        labelsize=8,
         color='grey')
 
     ax_box.set_ylim(overall_min*2,
@@ -180,20 +176,17 @@ def box_plot(years, aoi_name, csv_path):
     ax_box.set_xlabel('Year',
                       color='white')
 
-    # print(filtered_data[0].shape)
-    # data_years = np.empty(filtered_data[0].shape)
-    # for i in filtered_data:
-    #     np.concatenate((data_years, i))
-    # print(data_years.shape)
-    data_climo = np.concatenate((filtered_data[0], filtered_data[1]))
-
     # Create the boxplot
     bp = ax_box.boxplot(filtered_data,
                         boxprops=dict(color='lightgray', linewidth=1.5),
                         whiskerprops=dict(color='white'),
                         flierprops=dict(markerfacecolor='white', fillstyle=None, marker='.'),
                         medianprops=dict(color='orange'),
-                        capprops=dict(color='orange'))
+                        capprops=dict(color='orange'),
+                        showmeans=True,
+                        labels=tick_labels)
+
+    ax_box.tick_params(axis='x', colors='white')
 
     ax_box.grid(b=True,
                 which='major',
@@ -227,6 +220,9 @@ def overpost_all_plot(years, aoi_name, csv_path):
     min_display = 0
     max_display = 0
 
+    data_climo = pd.DataFrame()
+    data_climo['mean'] = years.mean(axis=1)
+
     # Add each year to same plot -- for some reason a 'undefined' values comes back first, so
     # check for year part first
     for ycol in years.columns:
@@ -243,6 +239,17 @@ def overpost_all_plot(years, aoi_name, csv_path):
                          marker='o',
                          ms=4,
                          linestyle='dashed')
+
+    print(data_climo.head())
+    s2mask = np.isfinite(data_climo['mean'])
+    ax_comb.plot(data_climo.index[s2mask],
+                 data_climo['mean'][s2mask],
+                 label='Mean for period',
+                 marker='o',
+                 ms=4,
+                 linestyle='dashed',
+                 color='white'
+                 )
 
     # auto-adjust range
     min_display *= 2
@@ -268,42 +275,6 @@ def overpost_all_plot(years, aoi_name, csv_path):
     plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
     plt.close()
 
-
-def year_vs_avg_plot(years, aoi_name, csv_path):
-    #### Now plot 2019 vs the 2000 - 2018 avg
-
-    # Calculate stats
-    cols = years.loc[:, "2000":"2020"]
-    years['base_mean'] = cols.mean(axis=1)
-    years['base_sd'] = cols.std(axis=1)
-
-    #TODO same issue here as in the anomaly version of this plot -- why the last value jump?
-
-    fig_comb_mean = plt.figure(figsize=(10, 5))
-    ax_comb_mean = fig_comb_mean.add_subplot(111)
-    ax_comb_mean.plot(years.index, years['2010'], label='2010', color='chartreuse')
-    ax_comb_mean.plot(years.index, years['2012'], label='2012', color='yellow')
-    ax_comb_mean.plot(years.index, years['2014'], label='2014', color='green')
-    ax_comb_mean.plot(years.index, years['2019'], label='2019', color='darkorange')
-    ax_comb_mean.plot(years.index, years['2020'], label='2020', color='firebrick')
-    ax_comb_mean.plot(years.index[:-85], years['base_mean'][:-85], label='2000-2020 Mean +/- 1 SD', color='slateblue',
-                      alpha=0.5)
-    plt.fill_between(years.index[:-85], years['base_mean'][:-85] - years['base_sd'][:-85], years['base_mean'][:-85] +
-                     years['base_sd'][:-85], color='lightgrey')
-    ax_comb_mean.set_ylim(0.0, 1.0)
-    ax_comb_mean.set_ylabel('White Sky Albedo')
-    ax_comb_mean.set_xlabel('DOY')
-    plt.legend(loc='lower left')
-
-    fig_comb_mean.suptitle(aoi_name)
-
-    file_path, file_name = os.path.split(csv_path)
-    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + '_2000-2020_mean_' +
-                             '_white_sky_time_series_2019_vs_mean.png')
-    if not os.path.isdir(os.path.join(file_path, 'figs')):
-        os.mkdir(os.path.join(file_path, 'figs'))
-    plt.savefig(save_name, dpi=300, bbox_inches='tight')
-    
 
 def check_leap(year):
     leap_status = False
@@ -417,7 +388,6 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
     years_df = pd.DataFrame()
 
     for name, group in groups:
-        print(name, group)
         if len(group.values) > 1:
             years_df[name.year] = group.values[:364]
 
@@ -431,7 +401,8 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
 
     # vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
     overpost_all_plot(years_df, aoi_name, sites_csv_input)
-    box_plot(years_df, aoi_name, sites_csv_input)
+    # box_plot(years_df, aoi_name, sites_csv_input)
+
 
     # Export data to csv
     os.chdir(fig_dir)
@@ -446,7 +417,7 @@ if __name__ == '__main__':
     base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
     prdct = "GRD-3"
     aoi_name = "TESTING"
-    start_date = datetime.strptime('2000-01-01', '%Y-%m-%d')
-    end_date = datetime.strptime('2020-01-01', '%Y-%m-%d')
+    start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2013-01-01', '%Y-%m-%d')
     csv_name = os.path.join(base_dir, 'sample.csv')
     make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name)
