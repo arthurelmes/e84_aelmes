@@ -1,6 +1,6 @@
-# Author: Arthur Elmes
-# Date: 2021-05-26
-# Purpose: Download GRACE Tellus data from JPL DAAC for
+""" This module downloads GRACE Tellus data from JPL DAAC for visualization and anaylsis.
+Author: Arthur Elmes
+Date: 2021-05-26"""
 
 import requests
 import os

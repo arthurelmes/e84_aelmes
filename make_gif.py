@@ -1,3 +1,7 @@
+"""Compile all PNGs in the given directory into an animated gif for visualization.
+Author: Arthur Elmes
+2021-05-28"""
+
 import imageio
 import os
 

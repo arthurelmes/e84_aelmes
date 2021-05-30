@@ -1,4 +1,7 @@
-# Use pysimplegui to take in user inputs, do basic output
+"""This is a simple GUI frontend to run the spatial/temporal analysis tools for GRACE
+Tellus groundwater anomaly data.
+Author: Arthur Elmes
+2021-05-28"""
 
 import PySimpleGUI as sg
 import os.path
@@ -10,6 +13,7 @@ import time_series_aoi
 import download_grace
 import make_gif
 import viz_grace
+import img_diff
 
 if __name__ == '__main__':
     base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
@@ -37,11 +41,17 @@ if __name__ == '__main__':
                                                end_date=end,
                                                csv_name='sample.csv')
 
+    def make_img_diff(start, end, ul, lr, workspace):
+        print('Now creating image difference map for AOI.')
+        img_diff.run_img_diff(start, end, ul, lr, workspace)
+
+
     # set the layout bits
     layout = [[sg.Text('Welcome to the GRACE Tellus Data Viz Tool!')],
               [sg.Button('Download Time Series', key='-Download-'),
                sg.Button('Create AOI Maps', key='-Map-'),
-               sg.Button('Time Series Button', key='-Time-')],
+               sg.Button('Time Series Graphs', key='-Time-'),
+               sg.Button('MakeImage Difference', key='-ImDiff-')],
               [sg.Text('Start Date in YYYY-MM-DD', size=(25, 1)),
                sg.InputText(key='-StartDate-', size=(15, 1))],
               [sg.Text('End Date in YYYY-MM-DD', size=(25, 1)),
@@ -71,6 +81,10 @@ if __name__ == '__main__':
             run_vis(ul_coord, lr_coord, base_dir)
         elif event == '-Time-':
             run_plots(date_start, date_end, base_dir)
+        elif event == '-ImDiff-':
+            date_start_doy = download_grace.convert_date(date_start)
+            date_end_doy = download_grace.convert_date(date_end)
+            make_img_diff(date_start_doy, date_end_doy, ul_coord, lr_coord, base_dir)
         elif event == '-Submit-':
             date_start = datetime.datetime.strptime(values['-StartDate-'], '%Y-%m-%d')
             date_end = datetime.datetime.strptime(values['-EndDate-'], '%Y-%m-%d')

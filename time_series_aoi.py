@@ -1,3 +1,7 @@
+"""This module creates several data visualizations to better understand image time series
+data sets, such as GRACE Tellus groundwater anomaly data.
+Author: Arthur Elmes
+2021-05-28"""
 
 import os, glob, sys, csv
 import numpy as np
