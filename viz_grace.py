@@ -79,6 +79,7 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
                 resolution='c')
 
     # make grid of xy coords for plotting
+    # this also should handle coord systems other than lat/long
     xy_source = np.mgrid[ymax:ymin - 1:yres, xmin:xmax + 1:xres]
     inproj = osr.SpatialReference()
     inproj.ImportFromWkt(proj)
@@ -88,12 +89,16 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
 
     # These to be implemented with any data with units that
     # aren't degrees, unlike the GRACE gridded data
-    # col0, col1 = int((90 - ymax + xres * 0.5) / xres), \
-    #              int((90 - ymin + xres * 0.5) / yres)
-    # row0, row1 = int((180 + xmin) / gt[5]), \
+    # row0, row1 = int((90 - ymax + xres) / xres), \
+    #              int((90 - ymin + xres) / yres)
+    # col0, col1 = int((180 + xmin) / gt[5]), \
     #              int((180 + xmax) / gt[5])
 
     # slice data based on user extent
+    # NOTE in future version, update this to account for pixel size
+    # other than 1 by simply:
+    #         col = int(long - xmin) / xres)
+    #         row = int((ymax - lat) / yres)
     data = data[90 - ymax:90 - ymin, xmin + 180:xmax + 180]
 
     # plotting stuff

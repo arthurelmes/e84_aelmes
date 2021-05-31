@@ -21,6 +21,7 @@ if __name__ == '__main__':
         print('Now downloading GRACE images for time period.')
         download_grace.dl_data(dl_dir, start, end)
 
+
     def run_vis(ul, lr, workspace):
         print('Now creating map of AOI.')
         viz_grace.make_all_plots(workspace, ul, lr)
@@ -37,36 +38,71 @@ if __name__ == '__main__':
                                                end_date=end,
                                                csv_name='sample.csv')
 
+
     def make_img_diff(start, end, ul, lr, workspace):
         print('Now creating image difference map for AOI.')
         img_diff.run_img_diff(start, end, ul, lr, workspace)
 
 
-    # set the layout bits
-    layout = [[sg.Text('Welcome to the GRACE Tellus Data Viz Tool!')],
-              [sg.Button('Download Time Series', key='-Download-'),
-               sg.Button('Create AOI Maps', key='-Map-'),
-               sg.Button('Time Series Graphs', key='-Time-'),
-               sg.Button('MakeImage Difference', key='-ImDiff-')],
-              [sg.Text('Start Date in YYYY-MM-DD', size=(25, 1)),
-               sg.InputText(key='-StartDate-', size=(15, 1))],
-              [sg.Text('End Date in YYYY-MM-DD', size=(25, 1)),
-               sg.InputText(key='-EndDate-', size=(15, 1))],
-              [sg.Text('Upper left corner latitude', size=(30, 1)),
-               sg.InputText(key='-ULLAT-', size=(15, 1))],
-              [sg.Text('Upper left corner longitude', size=(30, 1)),
-               sg.InputText(key='-ULLON-', size=(15, 1))],
-              [sg.Text('Lower right corner latitude', size=(30, 1)),
-               sg.InputText(key='-LRLAT-', size=(15, 1))],
-              [sg.Text('Lower right corner longitude', size=(30, 1)),
-               sg.InputText(key='-LRLON-', size=(15, 1))],
-              [sg.Text('Workspace:', size=(20, 1)),
-               sg.InputText(key='-WORKSPACE-', size=(35, 1))],
-              [sg.Button('Set date and AOI', key='-Submit-')]
-              ]
+    # set theme
+    sg.theme('Topanga')
 
+    # set the layout bits
+    data_entry_col = [
+                        [sg.Text('Welcome to the GRACE Tellus Data Viz Tool! \n'
+                                 'NOTE: lat/long coords should be like: 60 -120 '
+                                 'for latitude 60N by longitude 120W')],\
+                         [sg.Button('Download Time Series', key='-Download-'),
+                            sg.Button('Create AOI Maps', key='-Map-'),
+                            sg.Button('Time Series Graphs', key='-Time-'),
+                            sg.Button('MakeImage Difference', key='-ImDiff-')],\
+                         [sg.Text('Start Date in YYYY-MM-DD', size=(30, 1)),
+                          sg.InputText(key='-StartDate-', size=(15, 1))], \
+                         [sg.Text('End Date in YYYY-MM-DD', size=(30, 1)),
+                          sg.InputText(key='-EndDate-', size=(15, 1))], \
+                         [sg.Text('Upper left corner latitude', size=(30, 1)),
+                          sg.InputText(key='-ULLAT-', size=(15, 1))],\
+                         [sg.Text('Upper left corner longitude', size=(30, 1)),
+                          sg.InputText(key='-ULLON-', size=(15, 1))],\
+                         [sg.Text('Lower right corner latitude', size=(30, 1)),
+                          sg.InputText(key='-LRLAT-', size=(15, 1))],\
+                         [sg.Text('Lower right corner longitude', size=(30, 1)),
+                          sg.InputText(key='-LRLON-', size=(15, 1))],\
+                         [sg.Text('Workspace:', size=(30, 1)),
+                          sg.InputText(key='-WORKSPACE-', size=(35, 1))],\
+                         [sg.Button('Set date and AOI', key='-Submit-')]
+                      ]
+
+    file_list_col = [
+        [
+            sg.Text('Image Folder'),
+            sg.In(size=(25,1), enable_events=True, key='-FOLDER-'),
+            sg.FolderBrowse(),
+        ],
+        [
+            sg.Listbox(
+                values=[], enable_events=True, size=(40, 20), key='-FILE LIST-'
+            )
+        ],
+    ]
+
+    img_viewer_col = [
+        [sg.Text('Run analysis and then choose an image from the list.')],
+        [sg.Text(size=(40, 1), key='-TOUT-')],
+        [sg.Image(key='-IMAGE-')],
+    ]
+
+    layout = [
+        [
+            sg.Column(data_entry_col),
+            sg.VSeperator(),
+            sg.Column(file_list_col),
+            sg.VSeperator(),
+            sg.Column(img_viewer_col)
+        ]
+    ]
     # make the window obj
-    window = sg.Window('Test button functions', layout)
+    window = sg.Window('GRACE Tellus Data Viewer', layout)
     # base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
     # the event loop
     while True:
@@ -93,5 +129,28 @@ if __name__ == '__main__':
             # print(date_end)
             # print(ul_coord)
             # print(lr_coord)
+        elif event == '-FOLDER-':
+            folder = values['-FOLDER-']
+            try:
+                # Get list of files in folder
+                file_list = os.listdir(folder)
+            except:
+                file_list = []
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(folder, f))
+                   and f.lower().endswith(('.png', '.gif'))
+            ]
+            window['-FILE LIST-'].update(fnames)
+        elif event == '-FILE LIST-':  # A file was chosen from the listbox
+            try:
+                filename = os.path.join(
+                    values['-FOLDER-'], values['-FILE LIST-'][0]
+                )
+                window['-TOUT-'].update(filename)
+                window['-IMAGE-'].update(filename=filename)
+            except:
+                pass
 
     window.close()
