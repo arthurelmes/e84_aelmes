@@ -7,11 +7,11 @@ import os, glob, sys, csv
 import numpy as np
 import pandas as pd
 from datetime import datetime
-#import rasterio as rio
 from cycler import cycler
+import rasterio as rio
 import matplotlib.pyplot as plt
-#import matplotlib.ticker as ticker
-import gdal
+# import matplotlib.ticker as ticker
+from osgeo import gdal
 
 from scipy import stats
 
@@ -64,6 +64,10 @@ def extract_pixel_values(sites_dict, t_file_day):
 
         rc_list = []
         for site in sites_dict.items():
+            # TODO could replace the .index() call with gdal by simply:
+            # col = (long - xmin) / pixel_size_x
+            # row = (ymax - lat) / pixel_size_y
+            # where pixel size and ymax/xmin come from the gdal geotransform
             col, row = tif.index(float(site[1][1]), float(site[1][0]))
             rc_list.append((col, row))
 

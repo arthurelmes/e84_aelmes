@@ -16,10 +16,6 @@ import viz_grace
 import img_diff
 
 if __name__ == '__main__':
-    base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
-    # ul_coord = (70, -130)
-    # lr_coord = (10, -20)
-
     # example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
     def run_download(start, end, dl_dir):
         print('Now downloading GRACE images for time period.')
@@ -64,12 +60,14 @@ if __name__ == '__main__':
                sg.InputText(key='-LRLAT-', size=(15, 1))],
               [sg.Text('Lower right corner longitude', size=(30, 1)),
                sg.InputText(key='-LRLON-', size=(15, 1))],
+              [sg.Text('Workspace:', size=(20, 1)),
+               sg.InputText(key='-WORKSPACE-', size=(35, 1))],
               [sg.Button('Set date and AOI', key='-Submit-')]
               ]
 
     # make the window obj
     window = sg.Window('Test button functions', layout)
-
+    # base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
     # the event loop
     while True:
         event, values = window.read()
@@ -90,9 +88,10 @@ if __name__ == '__main__':
             date_end = datetime.datetime.strptime(values['-EndDate-'], '%Y-%m-%d')
             ul_coord = (int(values['-ULLAT-']), int(values['-ULLON-']))
             lr_coord = (int(values['-LRLAT-']), int(values['-LRLON-']))
-            print(date_start)
-            print(date_end)
-            print(ul_coord)
-            print(lr_coord)
+            base_dir = values['-WORKSPACE-']
+            # print(date_start)
+            # print(date_end)
+            # print(ul_coord)
+            # print(lr_coord)
 
     window.close()

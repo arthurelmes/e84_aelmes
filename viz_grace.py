@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 from mpl_toolkits.basemap import Basemap
-import osr
-import gdal
+from osgeo import osr
+from osgeo import gdal
 import glob
 
 
@@ -30,7 +30,6 @@ def convert_xy(xy_source, inproj, outproj):
 
 
 def img_to_arr(img):
-    print(img)
     ds = gdal.Open(img)
     arr = ds.ReadAsArray()
     gt = ds.GetGeoTransform()
@@ -49,7 +48,6 @@ def make_all_plots(data_dir, ul, lr):
 
     # loop over all matching input files in workspace, create plot for each
     for file in glob.glob(os.path.join(data_dir, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
-        print(file)
         make_plot(file, out_dir, True, ul, lr)
 
 
@@ -171,5 +169,4 @@ if __name__ == '__main__':
 
     # loop over all matching input files in workspace, create plot for each
     for file in glob.glob(os.path.join(workspace, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
-        print(file)
         make_plot(file, out_dir, True, ul, lr)

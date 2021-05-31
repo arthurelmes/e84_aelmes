@@ -9,6 +9,7 @@ import os
 def make_gif(png_dir, gif_dir):
     gif_list = [file for file in os.listdir(png_dir) if file.endswith('.png')]
     gif_list.sort()
+    print(gif_list)
     images = []
     for file_name in gif_list:
         images.append(imageio.imread(png_dir + file_name))

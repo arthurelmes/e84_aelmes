@@ -24,18 +24,7 @@ def convert_doy(doy):
 
 
 def dl_data(dl_dir, date_start, date_end):
-    # dl_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
-
-    # TODO when users enter year-mm, add the day 1 of that month to construct complete date
-    # date_0 = datetime.strptime('2003-01-01', '%Y-%m-%d')
-    # date_1 = datetime.strptime('2021-12-01', '%Y-%m-%d')
-
-    # date_start = datetime.strptime(date_start, '%Y-%m-%d')
-    # date_end = datetime.strptime(date_end, '%Y-%m-%d')
-
     os.chdir(dl_dir)
-
-
     while date_end > date_start:
         date_start_doy = convert_date(date_start)
         date_next = date_start + relativedelta(months=1) - relativedelta(days=1)
@@ -49,12 +38,6 @@ def dl_data(dl_dir, date_start, date_end):
         dl_url = base_url + file_front + file_date + file_end
         print(dl_url)
         response = requests.get(dl_url, stream=True, auth=('arthur.elmes', 'Yrkob5xXqc@CRW5TJn3'))
-
-        # try:
-        #     response = requests.get(dl_url, stream=True, auth=('arthur.elmes', 'Yrkob5xXqc@CRW5TJn3'))
-        #     response.raise_for_status()
-        # except requests.exceptions.HTTPError as err:
-        #     continue #raise SystemExit(err)
 
         test_file_name = file_front + file_date + file_end
 

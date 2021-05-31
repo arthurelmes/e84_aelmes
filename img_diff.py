@@ -4,7 +4,7 @@
 Author: Arthur Elmes
 2021-05-28"""
 
-import osr
+from osgeo import osr
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 import viz_grace
