@@ -29,14 +29,13 @@ if __name__ == '__main__':
                           gif_dir=os.path.join(workspace, 'gif/'))
 
 
-    def run_plots(start, end, workspace):
+    def run_plots(start, end, csv, workspace):
         print('Now creating time series plots for AOI.')
         time_series_aoi.make_time_series_plots(base_dir=workspace,
                                                prdct='GRD-3',
-                                               aoi_name='Alexandria, VA',
                                                start_date=start,
                                                end_date=end,
-                                               csv_name='sample.csv')
+                                               csv_name=csv)
 
 
     def make_img_diff(start, end, ul, lr, workspace):
@@ -51,25 +50,27 @@ if __name__ == '__main__':
     data_entry_col = [
                         [sg.Text('Welcome to the GRACE Tellus Data Viz Tool! \n'
                                  'NOTE: lat/long coords should be like: 60 -120 '
-                                 'for latitude 60N by longitude 120W')],\
+                                 'for latitude 60N by longitude 120W')],
                          [sg.Button('Download Time Series', key='-Download-'),
                             sg.Button('Create AOI Maps', key='-Map-'),
                             sg.Button('Time Series Graphs', key='-Time-'),
-                            sg.Button('MakeImage Difference', key='-ImDiff-')],\
+                            sg.Button('MakeImage Difference', key='-ImDiff-')],
                          [sg.Text('Start Date in YYYY-MM-DD', size=(30, 1)),
-                          sg.InputText(key='-StartDate-', size=(15, 1))], \
+                          sg.InputText(key='-StartDate-', size=(15, 1))],
                          [sg.Text('End Date in YYYY-MM-DD', size=(30, 1)),
-                          sg.InputText(key='-EndDate-', size=(15, 1))], \
+                          sg.InputText(key='-EndDate-', size=(15, 1))],
                          [sg.Text('Upper left corner latitude', size=(30, 1)),
-                          sg.InputText(key='-ULLAT-', size=(15, 1))],\
+                          sg.InputText(key='-ULLAT-', size=(15, 1))],
                          [sg.Text('Upper left corner longitude', size=(30, 1)),
-                          sg.InputText(key='-ULLON-', size=(15, 1))],\
+                          sg.InputText(key='-ULLON-', size=(15, 1))],
                          [sg.Text('Lower right corner latitude', size=(30, 1)),
-                          sg.InputText(key='-LRLAT-', size=(15, 1))],\
+                          sg.InputText(key='-LRLAT-', size=(15, 1))],
                          [sg.Text('Lower right corner longitude', size=(30, 1)),
-                          sg.InputText(key='-LRLON-', size=(15, 1))],\
+                          sg.InputText(key='-LRLON-', size=(15, 1))],
                          [sg.Text('Workspace:', size=(30, 1)),
-                          sg.InputText(key='-WORKSPACE-', size=(35, 1))],\
+                          sg.InputText(key='-WORKSPACE-', size=(35, 1))],
+                        [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1)),
+                         sg.InputText(key='-SAMPLE-', size=(35, 1))],
                          [sg.Button('Set date and AOI', key='-Submit-')]
                       ]
 
@@ -114,7 +115,7 @@ if __name__ == '__main__':
         elif event == '-Map-':
             run_vis(ul_coord, lr_coord, base_dir)
         elif event == '-Time-':
-            run_plots(date_start, date_end, base_dir)
+            run_plots(date_start, date_end, sample_csv, base_dir)
         elif event == '-ImDiff-':
             date_start_doy = download_grace.convert_date(date_start)
             date_end_doy = download_grace.convert_date(date_end)
@@ -125,10 +126,7 @@ if __name__ == '__main__':
             ul_coord = (int(values['-ULLAT-']), int(values['-ULLON-']))
             lr_coord = (int(values['-LRLAT-']), int(values['-LRLON-']))
             base_dir = values['-WORKSPACE-']
-            # print(date_start)
-            # print(date_end)
-            # print(ul_coord)
-            # print(lr_coord)
+            sample_csv = os.path.join(base_dir, values['-SAMPLE-'])
         elif event == '-FOLDER-':
             folder = values['-FOLDER-']
             try:

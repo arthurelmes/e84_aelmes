@@ -258,7 +258,6 @@ def overpost_all_plot(years, aoi_name, csv_path):
                          ms=4,
                          linestyle='dashed')
 
-    print(data_climo.head())
     s2mask = np.isfinite(data_climo['mean'])
     ax_comb.plot(data_climo.index[s2mask],
                  data_climo['mean'][s2mask],
@@ -324,7 +323,9 @@ def convert_to_doy(doy):
         sys.exit(1)
 
 
-def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name):
+def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
+    aoi_name = os.path.basename(csv_name[:-4])
+
     fig_dir = os.path.join(base_dir, 'time_series')
 
     if not os.path.exists(fig_dir):
@@ -438,4 +439,4 @@ if __name__ == '__main__':
     start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
     end_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
     csv_name = os.path.join(base_dir, 'sample.csv')
-    make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name)
+    make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name)
