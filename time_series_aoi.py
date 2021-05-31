@@ -7,20 +7,24 @@ import os, glob, sys, csv
 import numpy as np
 import pandas as pd
 from datetime import datetime
-import rasterio as rio
+#import rasterio as rio
 from cycler import cycler
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+#import matplotlib.ticker as ticker
+import gdal
 
 from scipy import stats
 
 
 def tif_to_np(tif_fname):
-    with rio.open(tif_fname,
-                  'r',
-                  driver='GTiff') as tif:
-        data_np = tif.read()
-        return data_np
+    # TODO check taht this change to gdal from rio didn't break it
+    # with rio.open(tif_fname,
+    #               'r',
+    #               driver='GTiff') as tif:
+    #     data_np = tif.read()
+    ds = gdal.Open(tif_fname)
+    data_np = ds.ReadAsArray()
+    return data_np
 
 
 def make_prod_list(in_dir, prdct, year, day):
