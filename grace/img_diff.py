@@ -7,11 +7,12 @@ Author: Arthur Elmes
 from osgeo import osr
 from mpl_toolkits.basemap import Basemap
 import numpy as np
-import viz_grace
 import matplotlib.pyplot as plt
 import glob
 import os
 
+# this pckg
+from grace import viz_grace
 
 def get_file_from_date(base_dir, in_date):
     file_name = glob.glob(os.path.join(base_dir, "GRD-3_" + in_date + "*"))[0]

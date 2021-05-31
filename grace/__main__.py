@@ -9,13 +9,16 @@ from datetime import datetime
 import sys
 
 # modules in this package
-import time_series_aoi
-import download_grace
-import make_gif
-import viz_grace
-import img_diff
+from grace import time_series_aoi
+from grace import download_grace
+from grace import make_gif
+from grace import viz_grace
+from grace import img_diff
 
 if __name__ == '__main__':
+	main()
+
+def main():
     # example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
     def run_download(start, end, dl_dir):
         print('Now downloading GRACE images for time period.')
