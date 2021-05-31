@@ -39,7 +39,7 @@ def img_to_arr(img):
 
 
 def make_all_plots(data_dir, ul, lr):
-    out_dir = os.path.join(data_dir, 'png')
+    out_dir = os.path.join(data_dir, 'map_exports')
     os.chdir(data_dir)
 
     # make output dir if it doesn't exist
@@ -66,7 +66,6 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     ymax = ul_coord[0]
     ymin = lr_coord[0]
 
-    # TODO figure out weird quirk in central longitude
     m = Basemap(projection='laea',
                 llcrnrlat=ymin,
                 urcrnrlat=ymax,
@@ -108,9 +107,11 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
             img_file.split('/')[-1][6:21]
     ax.set_title(title, loc='center', pad=22, color='white')
 
-    # TODO these need to be dynamic
-    stretch_min = -0.4
-    stretch_max = 0.4
+    # Note for future: it would be good if these were dynamic, but
+    # set for an entire AOI image stack, so that the legend doesn't
+    # change over time
+    stretch_min = -0.25
+    stretch_max = 0.25
 
     im = m.pcolormesh(xx,
                       yy,
@@ -136,8 +137,13 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     m.drawcountries()
     m.drawcoastlines(linewidth=.5)
 
+    stats_str = f'AOI Mean = {round(data.mean(), 2)} AOI STD DEV = {round(data.std(), 2)}'
+
+    plt.annotate(stats_str, xy=(10, 10), color='white')
+    #plt.annotate(std_str, xy=(-1, -1), color='white')
+
     # for some reason getting lat/long labels to change color requires this funny trick
-    merid = m.drawmeridians(np.arange(0, 361, 20), labels=[1, 0, 0, 1], color='white')
+    merid = m.drawmeridians(np.arange(0, 361, 20), labels=[0, 0, 0, 1], color='white')
     setcolor(merid, 'white')
     par = m.drawparallels(np.arange(-90, 91, 20), labels=[1, 0, 0, 1], color='white')
     setcolor(par, 'white')
@@ -148,27 +154,35 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     cb.ax.xaxis.set_tick_params(color='white')
     cb.ax.yaxis.set_tick_params(color='white')
 
-    # TODO UserWarning about FixedFormatter here -- check solution in time_series_aoi.py
+    #  UserWarning about FixedFormatter here -- check solution in time_series_aoi.py
+    # afaict I am doing it right, so for now suppress the warning
+    import warnings
+    warnings.filterwarnings('ignore')
+
+    cb.ax.set_xticks(np.round(np.arange(stretch_min, stretch_max + 0.1, 0.1)))
     cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
                           color='white')
 
+    if not os.path.exists(o_dir):
+        os.makedirs(o_dir)
 
     fig.savefig('{a}{b}_{c}_{d}.png'.format(a=o_dir + '/',
                                             b=os.path.basename(img_file[:-4]),
-                                            c=str(ul_coord[0]) + 'Deg_' + str(ul_coord[1]) + 'Deg_by',
-                                            d=str(lr_coord[0]) + 'Deg_' + str(lr_coord[1]) + 'Deg'))
+                                            c=str(ul_coord[0]) + 'N' + str(ul_coord[1]) + 'W_by',
+                                            d=str(lr_coord[0]) + 'N_' + str(lr_coord[1]) + 'W'))
 
 
 if __name__ == '__main__':
+    # this will be user-entered via cmd, just here for debug
     workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
-    out_dir = os.path.join(workspace, 'png')
+    out_dir = os.path.join(workspace, 'map_exports')
     os.chdir(workspace)
 
     # make output dir if it doesn't exist
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
 
-    # this will be user-entered via cmd
+    # this will be user-entered via cmd, just here for debug
     ul = (-10, 100)
     lr = (-45, 160)
 

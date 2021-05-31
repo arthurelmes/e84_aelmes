@@ -20,6 +20,7 @@ def get_file_from_date(base_dir, in_date):
 
 
 def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord):
+    # a lot of this should be condensed with viz_grace
     # use gdal to read in data as np array
     data_0, gt_0, proj_0 = viz_grace.img_to_arr(img_file_0)
     data_1, gt_1, proj_1 = viz_grace.img_to_arr(img_file_1)
@@ -79,8 +80,8 @@ def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord
     ax.set_title(title, loc='center', pad=22, color='white')
 
     # TODO these need to be dynamic
-    stretch_min = -0.4
-    stretch_max = 0.4
+    stretch_min = -0.25
+    stretch_max = 0.25
 
     im = m.pcolormesh(xx,
                       yy,

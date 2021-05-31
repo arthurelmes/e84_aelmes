@@ -92,52 +92,6 @@ def extract_pixel_values(sites_dict, t_file_day):
     return results
 
 
-def vert_stack_plot(years, nyears, strt_year, end_year, aoi_name, csv_path):
-    ### Create plot with all years stacked vertically in a series of parallel time series graphs
-    ncols = 1
-    nrows = nyears + 1
-
-    # create the plots
-    fig_stack = plt.figure(figsize=(10, 15))
-    axes = [fig_stack.add_subplot(nrows, ncols, r * ncols + c + 1) for r in range(0, nrows) for c in range(0, ncols)]
-
-    yr = strt_year
-    # add the data one year at a time
-    for ax_stack in axes:
-        col = str(yr)
-        ax_stack.plot(years[col])
-        #print(years[col].mean())
-        ax_stack.set_xlim(80, 250)
-        ax_stack.set_ylim(-0.005, 0.005)
-        ax_stack.grid(b=True, which='major', color='LightGrey', linestyle='-')
-        ax_stack.set_yticks([0.0])
-        ax_stack.tick_params(
-            axis='y',
-            labelsize=5
-                       )
-        ax_stack.text(260, 0.33, str(yr), fontsize=8)
-        # Remove ticks for everything but final year so no overlapping/messiness
-        if yr != end_year:
-            ax_stack.set_xticklabels([])
-        # Add label to middle year
-        if yr == round((end_year + strt_year) / 2, 0):
-            ax_stack.set_ylabel('White sky Albedo')
-        yr += 1
-
-    # This only needs to apply to the last ax
-    ax_stack.set_xlabel('DOY')
-    ax_stack.set_ylim(-0.005, 0.005)
-    fig_stack.suptitle(aoi_name, y=0.9)
-
-    # Make subdir if needed and save fig
-    file_path, file_name = os.path.split(csv_path)
-    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') +
-                             '_white_sky_time_series_vert_stack.png')
-    if not os.path.isdir(os.path.join(file_path, 'figs')):
-        os.mkdir(os.path.join(file_path, 'figs'))
-    plt.savefig(save_name, dpi=300, bbox_inches='tight')
-
-
 def box_plot(years, aoi_name, csv_path):
     # Quck boxplot for each year
     overall_mean = round(years.stack().mean(), 2)
@@ -214,9 +168,11 @@ def box_plot(years, aoi_name, csv_path):
 
     # Make subdir if needed and save fig
     file_path, file_name = os.path.split(csv_path)
-    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + '_boxplot.png')
-    if not os.path.isdir(os.path.join(file_path, 'figs')):
-        os.mkdir(os.path.join(file_path, 'figs'))
+    save_name = os.path.join(file_path, 'graphs', aoi_name.replace(' ', '_') + '_boxplot.png')
+
+    # make dir if doesn't exist
+    if not os.path.isdir(os.path.join(file_path, 'graphs')):
+        os.mkdir(os.path.join(file_path, 'graphs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
 
 
@@ -284,11 +240,13 @@ def overpost_all_plot(years, aoi_name, csv_path):
     for lh in lgnd.legendHandles:
         lh._legmarker.set_alpha(0)
 
-    # Save fig in figs subdir, making the subdir if needed
+    # Save fig in graphs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
-    save_name = os.path.join(file_path, 'figs', aoi_name.replace(' ', '_') + 'grace_time_series_overpost_stack.png')
-    if not os.path.isdir(os.path.join(file_path, 'figs')):
-        os.mkdir(os.path.join(file_path, 'figs'))
+    save_name = os.path.join(file_path, 'graphs', aoi_name.replace(' ', '_') + 'grace_time_series_overpost_stack.png')
+
+    # make dir if doesn't exist
+    if not os.path.isdir(os.path.join(file_path, 'graphs')):
+        os.mkdir(os.path.join(file_path, 'graphs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
     plt.close()
 
@@ -326,7 +284,7 @@ def convert_to_doy(doy):
 def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
     aoi_name = os.path.basename(csv_name[:-4])
 
-    fig_dir = os.path.join(base_dir, 'time_series')
+    fig_dir = os.path.join(base_dir, 'graphs')
 
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
@@ -418,7 +376,10 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
 
     for name, group in groups:
         if len(group.values) > 1:
-            years_df[name.year] = group.values[:364]
+            try:
+                years_df[name.year] = group.values[:364]
+            except:
+                print('incomplete data!')
 
     # drop any years that have no data at all
     years_df = years_df.dropna(axis=1, how='all')
@@ -427,7 +388,6 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
     years_df.columns = years_df.columns.astype(str)
 
     # make the plots
-    # vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
     overpost_all_plot(years_df, aoi_name, sites_csv_input)
     box_plot(years_df, aoi_name, sites_csv_input)
 
@@ -437,6 +397,6 @@ if __name__ == '__main__':
     prdct = "GRD-3"
     aoi_name = "TESTING"
     start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
-    end_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2015-12-31', '%Y-%m-%d')
     csv_name = os.path.join(base_dir, 'sample.csv')
     make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name)

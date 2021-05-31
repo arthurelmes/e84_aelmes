@@ -36,7 +36,7 @@ def dl_data(dl_dir, date_start, date_end):
         file_end = '_GRAC_JPLEM_BA01_0600_LND_v03.tif'
 
         dl_url = base_url + file_front + file_date + file_end
-        print(dl_url)
+        print(f'Downloading {dl_url}')
         response = requests.get(dl_url, stream=True, auth=('arthur.elmes', 'Yrkob5xXqc@CRW5TJn3'))
 
         test_file_name = file_front + file_date + file_end
@@ -56,7 +56,6 @@ def dl_data(dl_dir, date_start, date_end):
 
 def cleanup(dir):
     for file in glob.glob(os.path.join(dir, "*.tif")):
-        print(file)
         if os.path.getsize(file) < 350:
             os.remove(file)
 

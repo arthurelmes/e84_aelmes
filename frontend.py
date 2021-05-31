@@ -5,7 +5,7 @@ Author: Arthur Elmes
 
 import PySimpleGUI as sg
 import os.path
-import datetime
+from datetime import datetime
 import sys
 
 # modules in this package
@@ -25,12 +25,18 @@ if __name__ == '__main__':
     def run_vis(ul, lr, workspace):
         print('Now creating map of AOI.')
         viz_grace.make_all_plots(workspace, ul, lr)
-        make_gif.make_gif(png_dir=os.path.join(workspace, 'png/'),
+        make_gif.make_gif(png_dir=os.path.join(workspace, 'map_exports/'),
                           gif_dir=os.path.join(workspace, 'gif/'))
 
 
     def run_plots(start, end, csv, workspace):
         print('Now creating time series plots for AOI.')
+        # for these graphs, must have full year of data
+        if start.month != 1:
+            start = datetime.strptime(str(start.year) + '-01-01', '%Y-%m-%d')
+        if end.month != 1 or end.month != 12:
+            end = datetime.strptime(str(end.year) + '-12-31', '%Y-%m-%d')
+
         time_series_aoi.make_time_series_plots(base_dir=workspace,
                                                prdct='GRD-3',
                                                start_date=start,
@@ -40,7 +46,10 @@ if __name__ == '__main__':
 
     def make_img_diff(start, end, ul, lr, workspace):
         print('Now creating image difference map for AOI.')
-        img_diff.run_img_diff(start, end, ul, lr, workspace)
+        try:
+            img_diff.run_img_diff(start, end, ul, lr, workspace)
+        except IndexError:
+            print('File(s) not found -- make sure you have a file for this date!')
 
 
     # set theme
@@ -112,6 +121,7 @@ if __name__ == '__main__':
             break
         elif event == '-Download-':
             run_download(date_start, date_end, base_dir)
+            print(base_dir)
         elif event == '-Map-':
             run_vis(ul_coord, lr_coord, base_dir)
         elif event == '-Time-':
@@ -121,8 +131,8 @@ if __name__ == '__main__':
             date_end_doy = download_grace.convert_date(date_end)
             make_img_diff(date_start_doy, date_end_doy, ul_coord, lr_coord, base_dir)
         elif event == '-Submit-':
-            date_start = datetime.datetime.strptime(values['-StartDate-'], '%Y-%m-%d')
-            date_end = datetime.datetime.strptime(values['-EndDate-'], '%Y-%m-%d')
+            date_start = datetime.strptime(values['-StartDate-'], '%Y-%m-%d')
+            date_end = datetime.strptime(values['-EndDate-'], '%Y-%m-%d')
             ul_coord = (int(values['-ULLAT-']), int(values['-ULLON-']))
             lr_coord = (int(values['-LRLAT-']), int(values['-LRLON-']))
             base_dir = values['-WORKSPACE-']

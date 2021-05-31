@@ -7,6 +7,9 @@ import os
 
 
 def make_gif(png_dir, gif_dir):
+    if not os.path.isdir(gif_dir):
+        os.mkdir(gif_dir)
+
     gif_list = [file for file in os.listdir(png_dir) if file.endswith('.png')]
     gif_list.sort()
     images = []
