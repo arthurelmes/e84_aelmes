@@ -3,8 +3,8 @@ from osgeo import osr
 import rasterio as rio
 
 file_name = '/home/arthur/Dropbox/career/e84/sample_data/GRD-3_2015213-2015243_GRAC_JPLEM_BA01_0600_LND_v03.tif'
-lat_0 = 0
-lon_0 = 0
+lat_0 = 38.8085751136189
+lon_0 = -77.0647415182242
 
 ds = gdal.Open(file_name)
 gt = ds.GetGeoTransform()

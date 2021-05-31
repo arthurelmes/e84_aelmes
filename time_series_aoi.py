@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from cycler import cycler
-import rasterio as rio
+# import rasterio as rio
 import matplotlib.pyplot as plt
 # import matplotlib.ticker as ticker
 from osgeo import gdal
@@ -24,6 +24,7 @@ def tif_to_np(tif_fname):
     #     data_np = tif.read()
     ds = gdal.Open(tif_fname)
     data_np = ds.ReadAsArray()
+    ds = None
     return data_np
 
 
@@ -56,33 +57,38 @@ def make_prod_list(in_dir, prdct, year, day):
 
 
 def extract_pixel_values(sites_dict, t_file_day):
-    # Open tifs with rasterio
+    # Open with gdal
+    ds = gdal.Open(t_file_day)
+    gt = ds.GetGeoTransform()
+    xres = float(gt[1])
+    yres = float(gt[5]) * -1
+    xmin = float(gt[0])
+    ymax = float(gt[3])
 
-    with rio.open(t_file_day,
-                  'r',
-                  driver='GTiff') as tif:
+    # get array and mask out nodata values
+    tif = ds.ReadAsArray()
+    tif_np_masked = np.ma.masked_array(tif, tif == -99999.0)
 
-        rc_list = []
-        for site in sites_dict.items():
-            # TODO could replace the .index() call with gdal by simply:
-            # col = (long - xmin) / pixel_size_x
-            # row = (ymax - lat) / pixel_size_y
-            # where pixel size and ymax/xmin come from the gdal geotransform
-            col, row = tif.index(float(site[1][1]), float(site[1][0]))
-            rc_list.append((col, row))
+    # look through list of sample sites in csv to extract data for all
+    rc_list = []
+    for site in sites_dict.items():
+        col = int(((float(site[1][1])) - xmin) / xres)
+        row = int((ymax - float(site[1][0])) / yres)
 
-        tif_np = tif.read(1)
-        tif_np_masked = np.ma.masked_array(tif_np, tif_np == 32767)
+        rc_list.append((row, col))
 
-        results = []
-        for rc in rc_list:
-            try:
-                result = tif_np_masked[rc]
-                results.append(result)
-            except IndexError:
-                #print('No raster value for this pixel/date')
-                results.append(np.nan)
+    # create and return a list of results for all sites at the given date
+    results = []
+    for rc in rc_list:
+        try:
+            result = tif_np_masked[rc]
+            results.append(result)
+        except IndexError:
+            # print('No raster value for this pixel/date')
+            results.append(np.nan)
     results = np.ma.filled(results, fill_value=np.nan)
+
+    ds = None
     return results
 
 
@@ -329,6 +335,8 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
     dt_indx = pd.date_range(start_date, end_date)
     strt_year = dt_indx[0].to_pydatetime().year
     end_year = dt_indx[-1].to_pydatetime().year
+
+    # var never gets used?
     nyears = end_year - strt_year
 
     sites_csv_input = os.path.join(base_dir, csv_name)
@@ -386,6 +394,14 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
                     new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
                     smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
 
+    # Export data to csv
+    os.chdir(fig_dir)
+    file_name = sites_csv_input.split(sep='/')[-1]
+    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
+    csv_name = str(output_name + '_' + prdct + '_' + str(start_date) + '_' + str(end_date) + '.csv')
+    print('writing csv: ' + csv_name)
+    smpl_results_df.to_csv(csv_name, index=False)
+
     # rejig the date
     smpl_results_df['date'] = pd.to_datetime(smpl_results_df['yyyyddd'],
                                              format='%Y%j')
@@ -410,19 +426,9 @@ def make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_
     years_df.columns = years_df.columns.astype(str)
 
     # make the plots
-
     # vert_stack_plot(years_df, nyears, strt_year, end_year, aoi_name, sites_csv_input)
     overpost_all_plot(years_df, aoi_name, sites_csv_input)
-    # box_plot(years_df, aoi_name, sites_csv_input)
-
-
-    # Export data to csv
-    os.chdir(fig_dir)
-    file_name = sites_csv_input.split(sep='/')[-1]
-    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
-    csv_name = str(output_name + '_' + prdct + '_' + str(year) + '.csv')
-    print('writing csv: ' + csv_name)
-    smpl_results_df.to_csv(csv_name, index=False)
+    box_plot(years_df, aoi_name, sites_csv_input)
 
 
 if __name__ == '__main__':
@@ -430,6 +436,6 @@ if __name__ == '__main__':
     prdct = "GRD-3"
     aoi_name = "TESTING"
     start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
-    end_date = datetime.strptime('2013-01-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2015-01-01', '%Y-%m-%d')
     csv_name = os.path.join(base_dir, 'sample.csv')
     make_time_series_plots(base_dir, prdct, aoi_name, start_date, end_date, csv_name)
