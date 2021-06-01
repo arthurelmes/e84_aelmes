@@ -163,6 +163,7 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
                           color='white')
 
+    o_dir = os.path.join(o_dir, '_'.join([str(ymax), str(xmax), str(ymin), str(xmin)]))
     if not os.path.exists(o_dir):
         os.makedirs(o_dir)
 

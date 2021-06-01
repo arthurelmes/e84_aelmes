@@ -15,8 +15,6 @@ from grace import make_gif
 from grace import viz_grace
 from grace import img_diff
 
-if __name__ == '__main__':
-	main()
 
 def main():
     # example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
@@ -165,3 +163,7 @@ def main():
                 pass
 
     window.close()
+
+
+if __name__ == '__main__':
+	main()

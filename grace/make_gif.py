@@ -21,3 +21,9 @@ def make_gif(png_dir, gif_dir):
         print('failed to make gif for {}'.format(file_name))
 
     print(f'Animated gif created: {os.path.join(gif_dir, file_name)}6.gif')
+
+
+if __name__ == '__main__':
+    png_dir = '/home/arthur/Dropbox/career/e84/sample_data/map_exports/-10_160_-45_100/'
+    gif_dir = '/home/arthur/Dropbox/career/e84/sample_data/gif/'
+    make_gif(png_dir, gif_dir)

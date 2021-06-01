@@ -332,7 +332,7 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
             if len(t_file_list) == 0:
                 # print('File not found: ' + file_name)
                 pixel_values = [np.nan] * len(sites_dict)
-                new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
+                new_row = {'yyyyddd': str(year) + str(day), 'value': pixel_values[0]}
                 smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
             elif len(t_file_list) > 1:
                 print('Multiple matching files found for same date! Please remove one.')
