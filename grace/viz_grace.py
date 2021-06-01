@@ -11,7 +11,6 @@ try:
     print(os.environ['PROJ_LIB'])
 except:
     os.environ["PROJ_LIB"] = r"C:\Users\arthu\Anaconda3\envs\e84_win\Library\share\proj"
-print(os.environ['PROJ_LIB'])
 
 import numpy as np
 from mpl_toolkits.basemap import Basemap
@@ -195,8 +194,8 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
 
 if __name__ == '__main__':
     # this will be user-entered via cmd, just here for debug
-    workspace = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
-    # workspace = '/home/arthur/Dropbox/career/e84/sample_data'
+    #workspace = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
+    workspace = '/home/arthur/Dropbox/career/e84/sample_data'
     out_dir = os.path.join(workspace, 'map_exports')
     os.chdir(workspace)
 

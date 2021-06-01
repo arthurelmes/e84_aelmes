@@ -231,12 +231,9 @@ def overpost_all_plot(years, aoi_name, csv_path):
     ax_comb.set_ylabel('GRACE Anomaly', color='white')
     ax_comb.set_ylim(min_display, max_display)
     fig_comb.suptitle(aoi_name, color='white')
-    lgnd = plt.legend(ncol=4, loc='lower left', fontsize=10)
-
-    # to set legend transparency
-    # TODO not working
-    for lh in lgnd.legendHandles:
-        lh._legmarker.set_alpha(0)
+    lgnd = plt.legend(ncol=4, loc='upper left', fontsize=10)
+    frame = lgnd.get_frame()
+    frame.set_facecolor('gray')
 
     # Save fig in graphs subdir, making the subdir if needed
     file_path, file_name = os.path.split(csv_path)
@@ -245,6 +242,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     # make dir if doesn't exist
     if not os.path.isdir(os.path.join(file_path, 'graphs')):
         os.mkdir(os.path.join(file_path, 'graphs'))
+
     plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
     plt.close(fig_comb)
 
@@ -395,11 +393,11 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
 
 
 if __name__ == '__main__':
-    #base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
-    base_dir = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
+    base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+    #base_dir = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
     prdct = "GRD-3"
-    aoi_name = "TESTING"
-    start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
-    end_date = datetime.strptime('2015-12-31', '%Y-%m-%d')
-    csv_name = os.path.join(base_dir, 'sample_1.csv')
+    aoi_name = "Alice Springs"
+    start_date = datetime.strptime('2002-01-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2018-12-31', '%Y-%m-%d')
+    csv_name = os.path.join(base_dir, 'AliceSprings.csv')
     make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name)
