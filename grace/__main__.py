@@ -11,7 +11,6 @@ import sys
 # modules in this package
 from grace import time_series_aoi
 from grace import download_grace
-from grace import make_gif
 from grace import viz_grace
 from grace import img_diff
 
@@ -22,13 +21,9 @@ def main():
         print('Now downloading GRACE images for time period.')
         download_grace.dl_data(dl_dir, start, end)
 
-
     def run_vis(ul, lr, workspace):
         print('Now creating map of AOI.')
         viz_grace.make_all_plots(workspace, ul, lr)
-        make_gif.make_gif(png_dir=os.path.join(workspace, 'map_exports/'),
-                          gif_dir=os.path.join(workspace, 'gif/'))
-
 
     def run_plots(start, end, csv, workspace):
         print('Now creating time series plots for AOI.')
@@ -44,14 +39,12 @@ def main():
                                                end_date=end,
                                                csv_name=csv)
 
-
     def make_img_diff(start, end, ul, lr, workspace):
         print('Now creating image difference map for AOI.')
         try:
             img_diff.run_img_diff(start, end, ul, lr, workspace)
         except IndexError:
             print('File(s) not found -- make sure you have a file for this date!')
-
 
     # set theme
     sg.theme('Topanga')

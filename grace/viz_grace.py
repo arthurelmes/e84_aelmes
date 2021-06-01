@@ -10,6 +10,8 @@ from osgeo import osr
 from osgeo import gdal
 import glob
 
+from grace import make_gif
+
 
 def convert_xy(xy_source, inproj, outproj):
     # function to convert coordinates
@@ -39,7 +41,9 @@ def img_to_arr(img):
 
 
 def make_all_plots(data_dir, ul, lr):
-    out_dir = os.path.join(data_dir, 'map_exports')
+    coords = '_'.join([str(ul[0]), str(ul[1]), str(lr[0]), str(lr[1])])
+    out_dir = os.path.join(data_dir, 'map_exports', coords)
+
     os.chdir(data_dir)
 
     # make output dir if it doesn't exist
@@ -49,6 +53,10 @@ def make_all_plots(data_dir, ul, lr):
     # loop over all matching input files in workspace, create plot for each
     for file in glob.glob(os.path.join(data_dir, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
         make_plot(file, out_dir, True, ul, lr)
+
+    # make gif
+    make_gif.make_gif(png_dir=out_dir,
+                      gif_dir=os.path.join(data_dir, 'gif/'))
 
 
 def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
@@ -163,7 +171,6 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
                           color='white')
 
-    o_dir = os.path.join(o_dir, '_'.join([str(ymax), str(xmax), str(ymin), str(xmin)]))
     if not os.path.exists(o_dir):
         os.makedirs(o_dir)
 
