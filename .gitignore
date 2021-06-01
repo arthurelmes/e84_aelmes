@@ -1,10 +1,21 @@
+# Actually just ignore entire .idea dir
+.idea/
 # Default ignored files
-/shelf/
+.idea/shelf/
 /workspace.xml
 # Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
+.idea/dataSources/
+.idea/dataSources.local.xml
 # Editor-based HTTP Client requests
-/httpRequests/
+.idea/httpRequests/
 
-../*.spec
+/dist/
+/build/
+/__pycache__/
+*spec
+e84_aelmes.iml
+/inspectionProfiles/
+misc.xml
+modules.xml
+other.xml
+vcs.xml
