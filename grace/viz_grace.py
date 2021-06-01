@@ -9,6 +9,7 @@ from mpl_toolkits.basemap import Basemap
 from osgeo import osr
 from osgeo import gdal
 import glob
+import sys
 
 from grace import make_gif
 
@@ -48,7 +49,7 @@ def make_all_plots(data_dir, ul, lr):
 
     # make output dir if it doesn't exist
     if not os.path.isdir(out_dir):
-        os.mkdir(out_dir)
+        os.makedirs(out_dir, exist_ok=True)
 
     # loop over all matching input files in workspace, create plot for each
     for file in glob.glob(os.path.join(data_dir, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
@@ -121,6 +122,10 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     stretch_min = -0.25
     stretch_max = 0.25
 
+    print(xx)
+    print(yy)
+    sys.exit()
+
     im = m.pcolormesh(xx,
                       yy,
                       data,
@@ -128,6 +133,9 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
                       shading='auto',
                       vmin=stretch_min,
                       vmax=stretch_max)
+
+
+
     fig.set_facecolor('black')
     ax.set_facecolor('black')
     ax.tick_params(
@@ -182,7 +190,7 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
 
 if __name__ == '__main__':
     # this will be user-entered via cmd, just here for debug
-    workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
+    workspace = 'C:/tmp'
     out_dir = os.path.join(workspace, 'map_exports')
     os.chdir(workspace)
 
