@@ -122,10 +122,6 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     stretch_min = -0.25
     stretch_max = 0.25
 
-    print(xx)
-    print(yy)
-    sys.exit()
-
     im = m.pcolormesh(xx,
                       yy,
                       data,
@@ -133,8 +129,6 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
                       shading='auto',
                       vmin=stretch_min,
                       vmax=stretch_max)
-
-
 
     fig.set_facecolor('black')
     ax.set_facecolor('black')
@@ -190,7 +184,8 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
 
 if __name__ == '__main__':
     # this will be user-entered via cmd, just here for debug
-    workspace = 'C:/tmp'
+    #workspace = 'C:/tmp'
+    workspace = '/home/arthur/Dropbox/career/e84/sample_data'
     out_dir = os.path.join(workspace, 'map_exports')
     os.chdir(workspace)
 
