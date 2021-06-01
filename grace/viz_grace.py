@@ -190,6 +190,7 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
                                             b=os.path.basename(img_file[:-4]),
                                             c=str(ul_coord[0]) + 'N' + str(ul_coord[1]) + 'W_by',
                                             d=str(lr_coord[0]) + 'N_' + str(lr_coord[1]) + 'W'))
+    plt.close(fig)
 
 
 if __name__ == '__main__':

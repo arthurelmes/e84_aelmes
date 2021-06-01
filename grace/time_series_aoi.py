@@ -171,6 +171,7 @@ def box_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'graphs')):
         os.mkdir(os.path.join(file_path, 'graphs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight')
+    plt.close(fig_box)
 
 
 def overpost_all_plot(years, aoi_name, csv_path):
@@ -245,7 +246,7 @@ def overpost_all_plot(years, aoi_name, csv_path):
     if not os.path.isdir(os.path.join(file_path, 'graphs')):
         os.mkdir(os.path.join(file_path, 'graphs'))
     plt.savefig(save_name, dpi=300, bbox_inches='tight', facecolor='black')
-    plt.close()
+    plt.close(fig_comb)
 
 
 def check_leap(year):
