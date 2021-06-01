@@ -87,8 +87,8 @@ def extract_pixel_values(sites_dict, t_file_day):
             # print('No raster value for this pixel/date')
             results.append(np.nan)
     results = np.ma.filled(results, fill_value=np.nan)
+    tif = None
 
-    ds = None
     return results
 
 
@@ -283,7 +283,7 @@ def convert_to_doy(doy):
 
 def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
     aoi_name = os.path.basename(csv_name[:-4])
-
+    aoi_names = csv_name
     fig_dir = os.path.join(base_dir, 'graphs')
 
     if not os.path.exists(fig_dir):
@@ -305,6 +305,8 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
         for row in reader:
             key = row[0]
             sites_dict[key] = row[1:]
+
+    #print(sites_dict.items())
 
     # Loop through the years provided, and extract the pixel values at the provided coordinates. Outputs CSV and figs.
     smpl_results_df = pd.DataFrame(columns=['yyyyddd', 'value'])
@@ -344,12 +346,13 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
                 try:
                     pixel_values = extract_pixel_values(sites_dict, t_file_day)
 
-                    new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
+                    # remove any nans, then report mean across the rows for table
+                    pixel_values = pixel_values[~np.isnan(pixel_values)]
+                    new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values.mean()}
                     smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
                 except:
                     # print('Warning! Pixel out of raster boundaries!')
                     pixel_values = [np.nan] * len(sites_dict)
-
                     new_row = {'yyyyddd': str(year)+str(day), 'value': pixel_values[0]}
                     smpl_results_df = smpl_results_df.append(new_row, ignore_index=True)
 
@@ -398,5 +401,5 @@ if __name__ == '__main__':
     aoi_name = "TESTING"
     start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')
     end_date = datetime.strptime('2015-12-31', '%Y-%m-%d')
-    csv_name = os.path.join(base_dir, 'sample.csv')
+    csv_name = os.path.join(base_dir, 'sample_1.csv')
     make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name)
