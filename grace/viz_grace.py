@@ -59,7 +59,7 @@ def make_all_plots(data_dir, ul, lr):
         os.makedirs(out_dir, exist_ok=True)
 
     # loop over all matching input files in workspace, create plot for each
-    for file in glob.glob(os.path.join(data_dir, "*GRAC_JPLEM_BA01_0600_LND_v03.tif")):
+    for file in glob.glob(os.path.join(data_dir, "*JPLEM_BA01_0600_LND_*.tif")):
         make_plot(file, out_dir, True, ul, lr)
 
     # make gif
