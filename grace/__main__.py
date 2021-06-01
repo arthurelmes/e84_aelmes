@@ -52,12 +52,11 @@ def main():
     # set the layout bits
     data_entry_col = [
                         [sg.Text('Welcome to the GRACE Tellus Data Viz Tool! \n'
+                                 'First, set your AOI bounding coords and time.\n'
+                                 'Then, click "Set date and AOI".\n'    
+                                 'Finally, download your images, and run the analyses.\n'
                                  'NOTE: lat/long coords should be like: 60 -120 '
                                  'for latitude 60N by longitude 120W')],
-                         [sg.Button('Download Time Series', key='-Download-'),
-                            sg.Button('Create AOI Maps', key='-Map-'),
-                            sg.Button('Time Series Graphs', key='-Time-'),
-                            sg.Button('MakeImage Difference', key='-ImDiff-')],
                          [sg.Text('Start Date in YYYY-MM-DD', size=(30, 1)),
                           sg.InputText(key='-StartDate-', size=(15, 1))],
                          [sg.Text('End Date in YYYY-MM-DD', size=(30, 1)),
@@ -74,7 +73,11 @@ def main():
                           sg.InputText(key='-WORKSPACE-', size=(35, 1))],
                         [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1)),
                          sg.InputText(key='-SAMPLE-', size=(35, 1))],
-                         [sg.Button('Set date and AOI', key='-Submit-')]
+                         [sg.Button('Set date and AOI', key='-Submit-')],
+                        [sg.Button('Download Time Series', key='-Download-'),
+                         sg.Button('Create AOI Maps', key='-Map-'),
+                         sg.Button('Time Series Graphs', key='-Time-'),
+                         sg.Button('MakeImage Difference', key='-ImDiff-')],
                       ]
 
     file_list_col = [
@@ -160,3 +163,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
+

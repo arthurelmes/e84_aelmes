@@ -14,6 +14,7 @@ import os
 # this pckg
 from grace import viz_grace
 
+
 def get_file_from_date(base_dir, in_date):
     file_name = glob.glob(os.path.join(base_dir, "GRD-3_" + in_date + "*"))[0]
 
@@ -21,6 +22,9 @@ def get_file_from_date(base_dir, in_date):
 
 
 def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord):
+    coords = '_'.join([str(ul_coord[0]), str(ul_coord[1]), str(lr_coord[0]), str(lr_coord[1])])
+    o_dir = os.path.join(o_dir, 'map_exports', coords)
+
     # a lot of this should be condensed with viz_grace
     # use gdal to read in data as np array
     data_0, gt_0, proj_0 = viz_grace.img_to_arr(img_file_0)
@@ -122,7 +126,7 @@ def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord
     cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
                           color='white')
 
-    fig.savefig('{a}_to_{b}_{c}_{d}_{e}.png'.format(a=o_dir + '/png/',
+    fig.savefig('{a}_to_{b}_{c}_{d}_{e}.png'.format(a=o_dir,
                                                     b=os.path.basename(img_file_0[:-4]),
                                                     c=os.path.basename(img_file_1[:-4]),
                                                     d=str(ul_coord[0]) + 'Deg_' + str(ul_coord[1]) + 'Deg_by',

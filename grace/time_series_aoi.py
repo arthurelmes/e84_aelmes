@@ -8,12 +8,9 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from cycler import cycler
-# import rasterio as rio
 import matplotlib.pyplot as plt
-# import matplotlib.ticker as ticker
 from osgeo import gdal
 
-from scipy import stats
 
 
 def tif_to_np(tif_fname):
@@ -359,8 +356,9 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
     # Export data to csv
     os.chdir(fig_dir)
     file_name = sites_csv_input.split(sep='/')[-1]
-    output_name = str(fig_dir + '/' + file_name[:-4] + '_extracted_values')
-    csv_name = str(output_name + '_' + prdct + '_' + str(start_date) + '_' + str(end_date) + '.csv')
+    output_name = str(os.path.join(fig_dir, file_name[:-4] + '_extracted_values'))
+    csv_name = str(output_name + '_' + prdct + '_' + str(start_date.year) + str(start_date.month) +
+                   '_' + str(end_date.year) + '_' + str(end_date.month) + '.csv')
     print('writing csv: ' + csv_name)
     smpl_results_df.to_csv(csv_name, index=False)
 
@@ -396,7 +394,8 @@ def make_time_series_plots(base_dir, prdct, start_date, end_date, csv_name):
 
 
 if __name__ == '__main__':
-    base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+    #base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
+    base_dir = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
     prdct = "GRD-3"
     aoi_name = "TESTING"
     start_date = datetime.strptime('2010-01-01', '%Y-%m-%d')

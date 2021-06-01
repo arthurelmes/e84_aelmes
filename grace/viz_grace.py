@@ -1,15 +1,22 @@
 """This module creates maps of specified AOIs from GRACE Tellus groundwater anomaly data.
 Author: Arthur Elmes
 2021-05-28"""
+import sys
 
 import matplotlib.pyplot as plt
 import os
+
+try:
+    print(os.environ['PROJ_LIB'])
+except:
+    os.environ["PROJ_LIB"] = r"C:\Users\arthu\Anaconda3\envs\e84_win\Library\share\proj"
+print(os.environ['PROJ_LIB'])
+
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 from osgeo import osr
 from osgeo import gdal
 import glob
-import sys
 
 from grace import make_gif
 
@@ -61,6 +68,7 @@ def make_all_plots(data_dir, ul, lr):
 
 
 def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
+    print(f'making plot for {img_file}')
     # use gdal to read in data as np array
     data, gt, proj = img_to_arr(img_file)
 
@@ -184,8 +192,8 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
 
 if __name__ == '__main__':
     # this will be user-entered via cmd, just here for debug
-    #workspace = 'C:/tmp'
-    workspace = '/home/arthur/Dropbox/career/e84/sample_data'
+    workspace = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
+    # workspace = '/home/arthur/Dropbox/career/e84/sample_data'
     out_dir = os.path.join(workspace, 'map_exports')
     os.chdir(workspace)
 
