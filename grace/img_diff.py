@@ -4,12 +4,20 @@
 Author: Arthur Elmes
 2021-05-28"""
 
+import os
+# some odd error with the basemap data
+try:
+    print(os.environ['PROJ_LIB'])
+except:
+    os.environ["PROJ_LIB"] = r"C:\Users\arthu\Anaconda3\envs\e84_win\Library\share\proj"
+print(os.environ['PROJ_LIB'])
+
 from osgeo import osr
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
-import os
+
 
 # this pckg
 from grace import viz_grace
@@ -24,6 +32,9 @@ def get_file_from_date(base_dir, in_date):
 def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord):
     coords = '_'.join([str(ul_coord[0]), str(ul_coord[1]), str(lr_coord[0]), str(lr_coord[1])])
     o_dir = os.path.join(o_dir, 'map_exports', coords)
+
+    if not os.path.exists(o_dir):
+        os.makedirs(o_dir, exist_ok=True)
 
     # a lot of this should be condensed with viz_grace
     # use gdal to read in data as np array
@@ -81,7 +92,8 @@ def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord
     fig = plt.figure(figsize=(12, 6))
     ax = fig.add_subplot(111)
     title = 'GRACE Land Water-Equivalent-Thickness Surface Mass Delta between: ' + \
-            img_file_0.split('/')[-1][6:21] + ' and ' + img_file_1.split('/')[-1][6:21]
+            os.path.splitext(os.path.basename(img_file_0))[0][6:21] + \
+            ' and ' + os.path.splitext(os.path.basename(img_file_1))[0][6:21]
     ax.set_title(title, loc='center', pad=22, color='white')
 
     # TODO these need to be dynamic
@@ -126,11 +138,18 @@ def img_diff(img_file_0, img_file_1, o_dir, contrast_stretch, ul_coord, lr_coord
     cb.ax.set_xticklabels(np.round(np.arange(stretch_min, stretch_max+0.1, 0.1), 2),
                           color='white')
 
-    fig.savefig('{a}_to_{b}_{c}_{d}_{e}.png'.format(a=o_dir,
-                                                    b=os.path.basename(img_file_0[:-4]),
-                                                    c=os.path.basename(img_file_1[:-4]),
-                                                    d=str(ul_coord[0]) + 'Deg_' + str(ul_coord[1]) + 'Deg_by',
-                                                    e=str(lr_coord[0]) + 'Deg_' + str(lr_coord[1]) + 'Deg'))
+    f_name = os.path.join(o_dir, "_".join([os.path.basename(img_file_0[:-4]),
+                                           os.path.basename(img_file_1[:-4]),
+                                           str(ul_coord[0]), 'Deg',
+                                           str(ul_coord[1]), 'Deg_by',
+                                           str(lr_coord[0]), 'Deg_',
+                                           str(lr_coord[1]), 'Deg']))
+    fig.savefig(f_name)
+    # fig.savefig('{a}{b}_{c}_{d}_{e}.png'.format(a=o_dir,
+    #                                                 b=os.path.basename(img_file_0[:-4]),
+    #                                                 c=os.path.basename(img_file_1[:-4]),
+    #                                                 d=str(ul_coord[0]) + 'Deg_' + str(ul_coord[1]) + 'Deg_by',
+    #                                                 e=str(lr_coord[0]) + 'Deg_' + str(lr_coord[1]) + 'Deg'))
 
 
 def run_img_diff(start_date, end_date, ul_coord, lr_coord, workspace):
@@ -143,13 +162,16 @@ if __name__ == '__main__':
     import os
     import glob
     import sys
-    workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
-    out_dir = os.path.join(workspace, 'png')
+    #workspace = '/home/arthur/Dropbox/career/e84/sample_data/'
+    workspace = r'C:\Users\arthu\Dropbox\career\e84\sample_data'
+
+    # out_dir = os.path.join(workspace, 'map_exports')
+    out_dir = workspace
     os.chdir(workspace)
 
     # for testing
-    date_0 = '2016061'
-    date_1 = '2016153'
+    date_0 = '2010152'
+    date_1 = '2010213'
 
     img_file_0 = get_file_from_date(workspace, date_0)
     img_file_1 = get_file_from_date(workspace, date_1)

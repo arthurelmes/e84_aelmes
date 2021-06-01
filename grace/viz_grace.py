@@ -6,6 +6,7 @@ import sys
 import matplotlib.pyplot as plt
 import os
 
+# some odd error with the basemap data
 try:
     print(os.environ['PROJ_LIB'])
 except:
@@ -121,7 +122,8 @@ def make_plot(img_file, o_dir, contrast_stretch, ul_coord, lr_coord):
     fig = plt.figure(figsize=(12, 6))
     ax = fig.add_subplot(111)
     title = 'GRACE Land Water-Equivalent-Thickness Surface Mass Anomaly Rel 6.0 v 03 for dates: ' + \
-            img_file.split('/')[-1][6:21]
+            os.path.splitext(os.path.basename(img_file))[0][6:21]
+            #img_file.split('/')[-1][6:21]
     ax.set_title(title, loc='center', pad=22, color='white')
 
     # Note for future: it would be good if these were dynamic, but
