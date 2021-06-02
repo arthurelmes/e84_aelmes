@@ -82,11 +82,11 @@ def main():
                           sg.InputText(key='-WORKSPACE-', size=(35, 1), font=('Lucinda', 14))],
                         [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1), font=('Lucinda', 14)),
                          sg.InputText(key='-SAMPLE-', size=(35, 1), font=('Lucinda', 14))],
-                         [sg.Button('Set date and AOI', key='-Submit-')],
-                        [sg.Button('Download Time Series', key='-Download-'),
-                         sg.Button('Create AOI Maps', key='-Map-'),
-                         sg.Button('Time Series Graphs', key='-Time-'),
-                         sg.Button('MakeImage Difference', key='-ImDiff-')],
+                         [sg.Button('Set date and AOI', key='-Submit-', font=('Lucinda', 14))],
+                        [sg.Button('Download Time Series', key='-Download-', font=('Lucinda', 14)),
+                         sg.Button('Create AOI Maps', key='-Map-', font=('Lucinda', 14)),
+                         sg.Button('Time Series Graphs', key='-Time-', font=('Lucinda', 14)),
+                         sg.Button('MakeImage Difference', key='-ImDiff-', font=('Lucinda', 14))],
                       ]
 
     file_list_col = [
