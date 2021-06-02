@@ -15,36 +15,42 @@ from grace import viz_grace
 from grace import img_diff
 
 
+# example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
+def run_download(start, end, dl_dir):
+    print('Now downloading GRACE images for time period.')
+    download_grace.dl_data(dl_dir, start, end)
+
+
+def run_vis(ul, lr, workspace):
+    print('Now creating map of AOI.')
+    viz_grace.make_all_plots(workspace, ul, lr)
+
+
+def run_plots(start, end, csv, workspace):
+    print('Now creating time series plots for AOI.')
+    # for these graphs, must have full year of data
+    if start.month != 1:
+        start = datetime.strptime(str(start.year) + '-01-01', '%Y-%m-%d')
+    if end.month != 1 or end.month != 12:
+        end = datetime.strptime(str(end.year) + '-12-31', '%Y-%m-%d')
+
+    time_series_aoi.make_time_series_plots(base_dir=workspace,
+                                           prdct='GRD-3',
+                                           start_date=start,
+                                           end_date=end,
+                                           csv_name=csv)
+
+
+def make_img_diff(start, end, ul, lr, workspace):
+    print('Now creating image difference map for AOI.')
+    try:
+        img_diff.run_img_diff(start, end, ul, lr, workspace)
+    except IndexError:
+        print('File(s) not found -- make sure you have a file for this date!')
+
+
 def main():
-    # example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
-    def run_download(start, end, dl_dir):
-        print('Now downloading GRACE images for time period.')
-        download_grace.dl_data(dl_dir, start, end)
-
-    def run_vis(ul, lr, workspace):
-        print('Now creating map of AOI.')
-        viz_grace.make_all_plots(workspace, ul, lr)
-
-    def run_plots(start, end, csv, workspace):
-        print('Now creating time series plots for AOI.')
-        # for these graphs, must have full year of data
-        if start.month != 1:
-            start = datetime.strptime(str(start.year) + '-01-01', '%Y-%m-%d')
-        if end.month != 1 or end.month != 12:
-            end = datetime.strptime(str(end.year) + '-12-31', '%Y-%m-%d')
-
-        time_series_aoi.make_time_series_plots(base_dir=workspace,
-                                               prdct='GRD-3',
-                                               start_date=start,
-                                               end_date=end,
-                                               csv_name=csv)
-
-    def make_img_diff(start, end, ul, lr, workspace):
-        print('Now creating image difference map for AOI.')
-        try:
-            img_diff.run_img_diff(start, end, ul, lr, workspace)
-        except IndexError:
-            print('File(s) not found -- make sure you have a file for this date!')
+    # # example gui from https://github.com/PySimpleGUI/PySimpleGUI/blob/master/DemoPrograms/Demo_Button_Func_Calls.py
 
     # set theme
     sg.theme('Topanga')
