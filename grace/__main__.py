@@ -57,27 +57,30 @@ def main():
 
     # set the layout bits
     data_entry_col = [
-                        [sg.Text('Welcome to the GRACE Tellus Data Viz Tool! \n'
-                                 'First, set your AOI bounding coords and time.\n'
-                                 'Then, click "Set date and AOI".\n'    
+                        [sg.Text('Welcome to the GRACE Tellus Data eXplorer (GTX)!\n', font=('Lucinda', 24))],
+                        [sg.Text('Instructions for use:\n'
+                                 '1. Set your AOI bounding coords, time, sample CSV, and workspace.\n'
+                                 '2. Click "Set date and AOI".\n'    
                                  'Finally, download your images, and run the analyses.\n'
-                                 'NOTE: lat/long coords should be like: 60 -120 '
-                                 'for latitude 60N by longitude 120W')],
-                         [sg.Text('Start Date in YYYY-MM-DD', size=(30, 1)),
-                          sg.InputText(key='-StartDate-', size=(15, 1))],
-                         [sg.Text('End Date in YYYY-MM-DD', size=(30, 1)),
-                          sg.InputText(key='-EndDate-', size=(15, 1))],
-                         [sg.Text('Upper left corner latitude', size=(30, 1)),
-                          sg.InputText(key='-ULLAT-', size=(15, 1))],
-                         [sg.Text('Upper left corner longitude', size=(30, 1)),
-                          sg.InputText(key='-ULLON-', size=(15, 1))],
-                         [sg.Text('Lower right corner latitude', size=(30, 1)),
-                          sg.InputText(key='-LRLAT-', size=(15, 1))],
-                         [sg.Text('Lower right corner longitude', size=(30, 1)),
-                          sg.InputText(key='-LRLON-', size=(15, 1))],
-                         [sg.Text('Workspace:', size=(30, 1)),
-                          sg.InputText(key='-WORKSPACE-', size=(35, 1))],
-                        [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1)),
+                                 '\nNOTES: All variables must be set prior to clicking "Set date and AOI"!\n'
+                                 'Format for lat/long coords is: 60 -120 '
+                                 'for latitude 60N by longitude 120W.\n'
+                                 'The sample CSV must look like 1,lat,lon with no headers.\n', font=('Lucinda', 14))],
+                         [sg.Text('Start Date in YYYY-MM-DD', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-StartDate-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('End Date in YYYY-MM-DD', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-EndDate-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('Upper left corner latitude', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-ULLAT-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('Upper left corner longitude', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-ULLON-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('Lower right corner latitude', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-LRLAT-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('Lower right corner longitude', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-LRLON-', size=(15, 1), font=('Lucinda', 14))],
+                         [sg.Text('Workspace:', size=(30, 1), font=('Lucinda', 14)),
+                          sg.InputText(key='-WORKSPACE-', size=(35, 1), font=('Lucinda', 14))],
+                        [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1), font=('Lucinda', 14)),
                          sg.InputText(key='-SAMPLE-', size=(35, 1))],
                          [sg.Button('Set date and AOI', key='-Submit-')],
                         [sg.Button('Download Time Series', key='-Download-'),
@@ -88,7 +91,7 @@ def main():
 
     file_list_col = [
         [
-            sg.Text('Image Folder'),
+            sg.Text('Image Folder', font=('Lucinda', 14)),
             sg.In(size=(25,1), enable_events=True, key='-FOLDER-'),
             sg.FolderBrowse(),
         ],
@@ -100,7 +103,7 @@ def main():
     ]
 
     img_viewer_col = [
-        [sg.Text('Run analysis and then choose an image from the list.')],
+        [sg.Text('Run analysis and then choose an image from the list.', font=('Lucinda', 14))],
         [sg.Text(size=(40, 1), key='-TOUT-')],
         [sg.Image(key='-IMAGE-')],
     ]
@@ -115,7 +118,7 @@ def main():
         ]
     ]
     # make the window obj
-    window = sg.Window('GRACE Tellus Data Viewer', layout)
+    window = sg.Window('GRACE Data eXplorer Beta', layout)
     # base_dir = '/home/arthur/Dropbox/career/e84/sample_data/'
     # the event loop
     while True:

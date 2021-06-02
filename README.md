@@ -1,1 +1,5 @@
-GRACE Tellus data explorer. Author Arthur Elmes. Created 5/2021.
+GRACE Data eXplorer (GDX).
+
+Author Arthur Elmes.
+Created 6/2021.
+BSD License, see LICENSE file for details.
