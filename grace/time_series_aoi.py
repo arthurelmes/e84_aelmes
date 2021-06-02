@@ -12,13 +12,8 @@ import matplotlib.pyplot as plt
 from osgeo import gdal
 
 
-
 def tif_to_np(tif_fname):
-    # TODO check taht this change to gdal from rio didn't break it
-    # with rio.open(tif_fname,
-    #               'r',
-    #               driver='GTiff') as tif:
-    #     data_np = tif.read()
+    # read datasource to np array
     ds = gdal.Open(tif_fname)
     data_np = ds.ReadAsArray()
     ds = None
@@ -26,6 +21,7 @@ def tif_to_np(tif_fname):
 
 
 def make_prod_list(in_dir, prdct, year, day):
+    # return a list of product file names
     if 'GRD-3' in prdct:
         t_file_list = glob.glob(os.path.join(in_dir,
                                              '{prdct}*_{year}{day}*.tif'.format(prdct=prdct,
@@ -54,7 +50,7 @@ def make_prod_list(in_dir, prdct, year, day):
 
 
 def extract_pixel_values(sites_dict, t_file_day):
-    # Open with gdal
+    #
     ds = gdal.Open(t_file_day)
     gt = ds.GetGeoTransform()
     xres = float(gt[1])
@@ -64,6 +60,8 @@ def extract_pixel_values(sites_dict, t_file_day):
 
     # get array and mask out nodata values
     tif = ds.ReadAsArray()
+
+    # this NoData value is specific to GRACE/GRACEFO
     tif_np_masked = np.ma.masked_array(tif, tif == -99999.0)
 
     # look through list of sample sites in csv to extract data for all
