@@ -81,7 +81,7 @@ def main():
                          [sg.Text('Workspace:', size=(30, 1), font=('Lucinda', 14)),
                           sg.InputText(key='-WORKSPACE-', size=(35, 1), font=('Lucinda', 14))],
                         [sg.Text('Sample CSV (id,lat,lon):', size=(30, 1), font=('Lucinda', 14)),
-                         sg.InputText(key='-SAMPLE-', size=(35, 1))],
+                         sg.InputText(key='-SAMPLE-', size=(35, 1), font=('Lucinda', 14))],
                          [sg.Button('Set date and AOI', key='-Submit-')],
                         [sg.Button('Download Time Series', key='-Download-'),
                          sg.Button('Create AOI Maps', key='-Map-'),
